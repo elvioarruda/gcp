@@ -177,7 +177,7 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
       <div id="login-error" class="error-msg" style="margin-bottom:.75rem"></div>
       <button class="btn btn-primary btn-full" onclick="doLogin()">Entrar</button>
     </div>
-    <!-- Exibição imediata da Build configurada -->
+    <!-- Elemento explicitamente posicionado no DOM para renderização imediata -->
     <div class="version-badge" id="login-version"></div>
   </div>
 
@@ -340,7 +340,6 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
 
   </div>
 
-  <!-- Barra de Navegação Inferior Ajustada -->
   <div id="bottom-nav" class="hidden">
     <button class="nav-item active" id="nav-home" onclick="showPage('home')">
       <span class="nav-icon material-symbols-outlined">home</span><span>Início</span>
@@ -368,7 +367,7 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
 
 const APP = {
   name: 'PWARRUDA V2',
-  build: '05', // Incrementado para validação de controle de cache
+  build: '06', // Incrementado sequencialmente para controle rigoroso de versão
   get fullName(){ return `${this.name} Build ${this.build}` },
   encKey: null,
   db: null,
@@ -387,10 +386,24 @@ const DB_KEY = 'pwarruda_db';
 const SETTINGS_KEY = 'pwarruda_settings';
 const SESSION_KEY = 'pwarruda_session';
 
-// Execução imediata ao carregar a janela para renderizar as informações de build no Login
+// Execução prioritária atrelada ao evento DOMContentLoaded para garantir a manipulação imediata
+document.addEventListener("DOMContentLoaded", function() {
+  updateVersionDisplay();
+});
+
+// Força também no window.onload como contingência secundária
 window.onload = function() {
   updateVersionDisplay();
 };
+
+function updateVersionDisplay() {
+  const v = `${APP.name} Build ${APP.build}`;
+  const loginBadge = document.getElementById('login-version');
+  const settingsBadge = document.getElementById('settings-version');
+  
+  if (loginBadge) loginBadge.textContent = v;
+  if (settingsBadge) settingsBadge.textContent = v;
+}
 
 // ─── CRYPTO ENGINE ───
 const Crypto = {
@@ -523,7 +536,7 @@ async function lerDadosDoArquivoVinculado() {
     if (bancoDescriptografado && bancoDescriptografado.records) {
       APP.db = bancoDescriptografado;
       localStorage.setItem(DB_KEY, textoCriptografado);
-      showToast('Dados sincronizados com o arquivo local!', 'success');
+      showToast('Dados synchronized com o arquivo local!', 'success');
       refreshCurrentPage();
     }
   } catch (err) {
@@ -685,6 +698,7 @@ async function doLogout() {
   document.getElementById('main').classList.add('hidden');
   document.getElementById('bottom-nav').classList.add('hidden');
   clearLockTimer();
+  updateVersionDisplay();
 }
 
 async function initApp() {
@@ -704,12 +718,6 @@ async function initApp() {
   if (APP.fileHandle) {
     await lerDadosDoArquivoVinculado();
   }
-}
-
-function updateVersionDisplay() {
-  const v = `${APP.name} Build ${APP.build}`;
-  if (document.getElementById('settings-version')) document.getElementById('settings-version').textContent = v;
-  if (document.getElementById('login-version')) document.getElementById('login-version').textContent = v;
 }
 
 // ─── NAVEGAÇÃO ───
