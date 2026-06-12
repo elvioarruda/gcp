@@ -996,4 +996,391 @@ function toggleBatchMode(isBatch) {
     batchBlock.classList.add('hidden');
     btnSave.classList.remove('hidden');
     btnCancel.classList.remove('hidden');
-    document.getElementById('form-page-title').textContent = document.getElementById('form-record-id').value ? 'Editar Registro' : 'Novo
+    document.getElementById('form-page-title').textContent = document.getElementById('form-record-id').value ? 'Editar Registro' : 'Novo Registro';
+  }
+}
+
+async function executarImportacaoEmLote() {
+  const textInput = document.getElementById('batch-text-input').value;
+  if (!textInput.trim()) {
+    showToast('Insira dados de texto válidos para processamento.', 'error');
+    return;
+  }
+
+  const linhas = textInput.split('\n');
+  let contagemSucesso = 0;
+
+  for (let i = 0; i < linhas.length; i++) {
+    const linha = linhas[i].trim();
+    if (!linha) continue;
+
+    const partes = linha.split(';');
+    const title = partes[0] ? partes[0].trim() : '';
+    
+    if (!title) continue;
+
+    const username = partes[1] ? partes[1].trim() : '';
+    const password = partes[2] ? partes[2] : '';
+    const optional01 = partes[3] ? partes[3].trim() : '';
+    const optional02 = partes[4] ? partes[4].trim() : '';
+    const notes = partes[5] ? partes[5].trim() : '';
+
+    const novoRegistro = {
+      id: crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2),
+      title,
+      username,
+      password,
+      optional01,
+      optional02,
+      type: 'login',
+      notes,
+      createdAt: Date.now(),
+      updatedAt: Date.now()
+    };
+
+    APP.db.records.push(novoRegistro);
+    contagemSucesso++;
+  }
+
+  if (contagemSucesso > 0) {
+    await Store.saveDB();
+    showToast(`${contagemSucesso} arquivos importados com sucesso!`, 'success');
+    
+    document.getElementById('batch-text-input').value = '';
+    document.getElementById('chk-batch-mode').checked = false;
+    toggleBatchMode(false);
+    showPage('records');
+  } else {
+    showToast('Nenhum registro estruturado pôde ser processado.', 'error');
+  }
+}
+
+// ─── FORMULÁRIO (INSERÇÃO / EDIÇÃO REGULAR) ───
+function abrirFormularioNovo() {
+  dinamizarElementosUI();
+  
+  document.getElementById('chk-batch-mode').checked = false;
+  toggleBatchMode(false);
+  document.getElementById('batch-toggle-container').classList.remove('hidden');
+
+  document.getElementById('form-page-title').textContent = 'Novo Registro';
+  document.getElementById('form-record-id').value = '';
+  document.getElementById('form-title').value = '';
+  document.getElementById('form-username').value = '';
+  document.getElementById('form-password').value = '';
+  document.getElementById('form-optional01').value = '';
+  document.getElementById('form-optional02').value = '';
+  document.getElementById('form-notes').value = '';
+  
+  const select = document.getElementById('form-type');
+  if (select && select.options.length > 0) {
+    select.selectedIndex = 0;
+  }
+  showPage('form');
+}
+
+function editarRegistro(id) {
+  const r = APP.db.records.find(x => x.id === id);
+  if (!r) return;
+
+  dinamizarElementosUI();
+  
+  document.getElementById('chk-batch-mode').checked = false;
+  toggleBatchMode(false);
+  document.getElementById('batch-toggle-container').classList.add('hidden');
+
+  document.getElementById('form-page-title').textContent = 'Editar Registro';
+  document.getElementById('form-record-id').value = r.id;
+  document.getElementById('form-title').value = r.title || '';
+  document.getElementById('form-username').value = r.username || '';
+  document.getElementById('form-password').value = r.password || '';
+  document.getElementById('form-optional01').value = r.optional01 || '';
+  document.getElementById('form-optional02').value = r.optional02 || '';
+  document.getElementById('form-notes').value = r.notes || '';
+  
+  const select = document.getElementById('form-type');
+  if (select) {
+    select.value = r.type || 'login';
+  }
+  showPage('form');
+}
+
+function cancelarFormulario() {
+  showPage('records');
+}
+
+async function salvarFormulario() {
+  const id = document.getElementById('form-record-id').value;
+  const title = document.getElementById('form-title').value.trim();
+  const username = document.getElementById('form-username').value.trim();
+  const password = document.getElementById('form-password').value;
+  const optional01 = document.getElementById('form-optional01').value.trim();
+  const optional02 = document.getElementById('form-optional02').value.trim();
+  const type = document.getElementById('form-type').value;
+  const notes = document.getElementById('form-notes').value;
+
+  if (!title) {
+    showToast('O título do registro é obrigatório.', 'error');
+    return;
+  }
+
+  if (id) {
+    const idx = APP.db.records.findIndex(x => x.id === id);
+    if (idx !== -1) {
+      APP.db.records[idx].title = title;
+      APP.db.records[idx].username = username;
+      APP.db.records[idx].password = password;
+      APP.db.records[idx].optional01 = optional01;
+      APP.db.records[idx].optional02 = optional02;
+      APP.db.records[idx].type = type;
+      APP.db.records[idx].notes = notes;
+      APP.db.records[idx].updatedAt = Date.now();
+      showToast('Registro updated com sucesso!', 'success');
+    }
+  } else {
+    const newRecord = {
+      id: crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2),
+      title,
+      username,
+      password,
+      optional01,
+      optional02,
+      type,
+      notes,
+      createdAt: Date.now(),
+      updatedAt: Date.now()
+    };
+    APP.db.records.push(newRecord);
+    showToast('Registro adicionado com sucesso!', 'success');
+  }
+
+  await Store.saveDB();
+  showPage('records');
+}
+
+async function excluirRegistro(id) {
+  if (!confirm('Confirma a exclusão definitiva deste registro?')) return;
+  
+  const idx = APP.db.records.findIndex(x => x.id === id);
+  if (idx !== -1) {
+    APP.db.records.splice(idx, 1);
+    await Store.saveDB();
+    showToast('Registro removido do banco de dados.', 'success');
+    refreshCurrentPage();
+  }
+}
+
+// ─── CLASSIFICAÇÃO / ORDENAÇÃO ───
+function toggleSort() {
+  APP.sortOrder = (APP.sortOrder === 'asc') ? 'desc' : 'asc';
+  const icon = document.getElementById('sort-icon');
+  if (icon) {
+    icon.textContent = 'sort_by_alpha';
+  }
+  showToast(`Ordenação: ${APP.sortOrder === 'asc' ? 'A-Z' : 'Z-A'}`, 'info');
+  renderRecords();
+}
+
+// ─── RENDERIZADORES VISUAIS ───
+function renderDashboard() {
+  if (!APP.db) return;
+  const records = APP.db.records || [];
+  document.getElementById('stat-total').textContent = records.length;
+  document.getElementById('stat-bank').textContent = records.filter(r=>r.type=='bank').length;
+  document.getElementById('stat-sites').textContent = records.filter(r=>r.type=='site').length;
+  document.getElementById('stat-logins').textContent = records.filter(r=>r.type=='login').length;
+
+  const recent = [...records].sort((a,b)=>(b.updatedAt||b.createdAt)-(a.updatedAt||a.createdAt)).slice(0,5);
+  const rl = document.getElementById('recent-list');
+  rl.innerHTML = recent.length ? recent.map(r=>recordCardHTML(r)).join('') : '<div class="empty-state"><div class="empty-text">Nenhum arquivo encontrado.</div></div>';
+}
+
+function getFilteredRecords() {
+  if (!APP.db) return [];
+  let recs = [...APP.db.records];
+  
+  if (APP.currentFilter !== 'all') recs = recs.filter(r => r.type === APP.currentFilter);
+  if (APP.searchQuery) {
+    const q = APP.searchQuery.toLowerCase();
+    recs = recs.filter(r => 
+      (r.title||'').toLowerCase().includes(q) || 
+      (r.username||'').toLowerCase().includes(q) || 
+      (r.optional01||'').toLowerCase().includes(q) || 
+      (r.optional02||'').toLowerCase().includes(q) || 
+      (r.notes||'').toLowerCase().includes(q)
+    );
+  }
+
+  recs.sort((a, b) => {
+    const titleA = a.title || '';
+    const titleB = b.title || '';
+    return APP.sortOrder === 'asc' ? titleA.localeCompare(titleB, 'pt-BR') : titleB.localeCompare(titleA, 'pt-BR');
+  });
+
+  return recs;
+}
+
+function renderRecords() {
+  const list = document.getElementById('records-list');
+  if (!list) return;
+  const recs = getFilteredRecords();
+  list.innerHTML = recs.length ? recs.map(r=>recordCardHTML(r)).join('') : '<div class="empty-state"><div class="empty-text">Vazio.</div></div>';
+}
+
+function formatarDataExibicao(timestamp) {
+  if (!timestamp) return 'N/A';
+  const d = new Date(timestamp);
+  return d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
+}
+
+function recordCardHTML(r) {
+  let typeLabel = 'Outro';
+  let typeIcon = '📁';
+  
+  if (APP.db && APP.db.categories) {
+    const cat = APP.db.categories.find(c => c.id === r.type);
+    if (cat) {
+      typeLabel = cat.label;
+      typeIcon = cat.icon || '📁';
+    }
+  }
+  
+  const ultimaEdicao = formatarDataExibicao(r.updatedAt || r.createdAt);
+  
+  let optionalsHTML = '';
+  if ((r.optional01 && r.optional01.trim()) || (r.optional02 && r.optional02.trim())) {
+    optionalsHTML = `<div class="record-optional-block">`;
+    if (r.optional01 && r.optional01.trim()) optionalsHTML += `<span><strong>OPC1:</strong> ${escHtml(r.optional01)}</span>`;
+    if (r.optional02 && r.optional02.trim()) optionalsHTML += `<span><strong>OPC2:</strong> ${escHtml(r.optional02)}</span>`;
+    optionalsHTML += `</div>`;
+  }
+
+  let notesHTML = '';
+  if (r.notes && r.notes.trim()) {
+    notesHTML = `<div class="record-notes">${escHtml(r.notes)}</div>`;
+  }
+  
+  return `<div class="record-card">
+    <div class="record-icon">${escHtml(typeIcon)}</div>
+    <div class="record-info">
+      <div class="record-title">${escHtml(r.title)}</div>
+      <div class="record-sub">${escHtml(r.username||'')}</div>
+      ${optionalsHTML}
+      ${notesHTML}
+      <div class="record-meta">
+        <span class="tag">${escHtml(typeLabel)}</span>
+        <span class="date-label">Modificado: ${ultimaEdicao}</span>
+      </div>
+    </div>
+    <div class="record-actions">
+      <button class="btn btn-icon btn-secondary btn-sm" onclick="copyPassword('${r.id}')" title="Copiar Senha">📋</button>
+      <button class="btn btn-icon btn-secondary btn-sm" onclick="editarRegistro('${r.id}')" title="Editar">✏️</button>
+      <button class="btn btn-icon btn-danger btn-sm" onclick="excluirRegistro('${r.id}')" title="Excluir">🗑️</button>
+    </div>
+  </div>`;
+}
+
+function setFilter(f, el) {
+  APP.currentFilter = f;
+  document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
+  if (el) el.classList.add('active');
+  renderRecords();
+}
+
+function doSearch(q) {
+  APP.searchQuery = q;
+  renderRecords();
+}
+
+function copyPassword(id) {
+  const r = APP.db.records.find(x=>x.id===id);
+  if (r && r.password) {
+    navigator.clipboard.writeText(r.password);
+    showToast('Senha copiada para a área de transferência!', 'success');
+  }
+}
+
+// ─── CONFIGURAÇÕES AUXILIARES ───
+function loadSettingsUI() {
+  if (document.getElementById('tog-autolock')) document.getElementById('tog-autolock').checked = !!APP.settings.autolock;
+  if (document.getElementById('sel-timeout')) document.getElementById('sel-timeout').value = APP.settings.timeout || 15;
+}
+
+function setupAutoLock() {
+  clearLockTimer();
+  if (APP.settings.autolock) {
+    const ms = (APP.settings.timeout || 15) * 60 * 1000;
+    APP.lockTimer = setTimeout(() => { doLogout(); showToast('Sessão encerrada por inatividade.', 'info'); }, ms);
+  }
+}
+
+function clearLockTimer() { if (APP.lockTimer) clearTimeout(APP.lockTimer); }
+
+function updateSyncIndicator() {
+  const ind = document.getElementById('sync-indicator');
+  if (ind) { 
+    ind.style.color = 'var(--success)';
+    setTimeout(() => ind.style.color = '', 1000); 
+  }
+}
+
+function exportData() {
+  if(!APP.db) return;
+  const blob = new Blob([JSON.stringify(APP.db, null, 2)], {type: 'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'backup_seguro.json';
+  a.click();
+}
+
+function importData(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async function(evt) {
+    try {
+      const parsed = JSON.parse(evt.target.result);
+      if (parsed && parsed.records) {
+        APP.db = parsed;
+        if (!APP.db.categories || APP.db.categories.length === 0) {
+          APP.db.categories = [...DEFAULT_CATEGORIES];
+        }
+        APP.db.categories.forEach(c => { if (!c.icon) c.icon = '📁'; });
+        await Store.saveDB();
+        dinamizarElementosUI();
+        refreshCurrentPage();
+        showToast('Dados manuais importados com sucesso.', 'success');
+      }
+    } catch(err) { showToast('Arquivo de importação inválido.', 'error'); }
+  };
+  reader.readAsText(file);
+}
+
+function confirmClearData() {
+  if (confirm("Confirma a eliminação de todos os dados locais do PWA?")) {
+    localStorage.clear();
+    location.reload();
+  }
+}
+
+// ─── UTILITÁRIOS ───
+function escHtml(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function togglePwd(id, btn) {
+  const inp = document.getElementById(id);
+  if (!inp) return;
+  if (inp.type === 'password') { inp.type = 'text'; if(btn) btn.textContent = '🙈'; }
+  else { inp.type = 'password'; if(btn) btn.textContent = '👁'; }
+}
+
+let toastTimer;
+function showToast(msg, type='info') {
+  const el = document.getElementById('toast');
+  if (!el) return;
+  clearTimeout(toastTimer);
+  el.textContent = msg;
+  el.className = `toast-${type} show`;
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2800);
+}
+</script>
+</body>
+</html>
