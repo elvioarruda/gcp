@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#1a1a2e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="PWARRUDA V2">
+<link rel="manifest" href="manifest.json">
+<title>PWARRUDA V2</title>
+<style>
+:root {
+  --primary: #4f46e5;
+  --primary-dark: #3730a3;
+  --primary-light: #818cf8;
+  --bg: #0f0f1a;
+  --bg2: #1a1a2e;
+  --bg3: #16213e;
+  --surface: #1e1e3a;
+  --surface2: #252545;
+  --border: rgba(79,70,229,0.25);
+  --text: #e8e8f0;
+  --text2: #9999bb;
+  --text3: #6666aa;
+  --success: #10b981;
+  --danger: #ef4444;
+  --warn: #f59e0b;
+  --info: #3b82f6;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --shadow: 0 4px 24px rgba(0,0,0,0.4);
+  --glow: 0 0 20px rgba(79,70,229,0.3);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);overflow:hidden}
+#app{height:100vh;display:flex;flex-direction:column;position:relative}
+.hidden{display:none!important}
+
+/* ─── LOGIN ─── */
+#login-screen{position:fixed;inset:0;background:linear-gradient(135deg,#0f0f1a 0%,#1a1a2e 50%,#0f0f1a 100%);display:flex;align-items:center;justify-content:center;z-index:1000;flex-direction:column;gap:2rem}
+.login-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:2.5rem 2rem;width:min(420px,90vw);box-shadow:var(--shadow),var(--glow)}
+.logo-area{text-align:center;margin-bottom:2rem}
+.logo-icon{font-size:3rem;margin-bottom:.5rem}
+.logo-title{font-size:1.6rem;font-weight:700;color:var(--primary-light);letter-spacing:.05em}
+.logo-sub{font-size:.75rem;color:var(--text3);letter-spacing:.15em;text-transform:uppercase;margin-top:.25rem}
+.form-group{margin-bottom:1.25rem}
+.form-group label{display:block;font-size:.8rem;color:var(--text2);margin-bottom:.5rem;font-weight:500;letter-spacing:.05em;text-transform:uppercase}
+.form-group input,.form-group select,.form-group textarea{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.75rem 1rem;color:var(--text);font-size:.95rem;outline:none;transition:all .2s}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(79,70,229,.15)}
+.form-group textarea{resize:vertical;min-height:80px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;padding:.75rem 1.5rem;border-radius:var(--radius-sm);border:none;cursor:pointer;font-size:.9rem;font-weight:600;transition:all .2s;user-select:none}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-primary:hover{background:var(--primary-dark);box-shadow:var(--glow)}
+.btn-secondary{background:transparent;color:var(--text2);border:1px solid var(--border)}
+.btn-secondary:hover{background:var(--surface2);color:var(--text)}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-danger:hover{background:#dc2626}
+.btn-success{background:var(--success);color:#fff}
+.btn-full{width:100%}
+.btn-sm{padding:.4rem .6rem;font-size:.8rem;border-radius:6px}
+.btn-icon{width:36px;height:36px;padding:0;border-radius:var(--radius-sm)}
+.version-badge{font-size:.7rem;color:var(--text3);letter-spacing:.1em;text-align:center}
+.error-msg{color:var(--danger);font-size:.8rem;margin-top:.4rem}
+
+/* ─── TOPBAR ─── */
+#topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:.75rem 1rem;display:flex;align-items:center;gap:.75rem;position:sticky;top:0;z-index:100}
+.topbar-logo{font-weight:700;color:var(--primary-light);font-size:.9rem;white-space:nowrap}
+.topbar-search{flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.5rem .75rem;color:var(--text);font-size:.85rem;outline:none}
+.topbar-search:focus{border-color:var(--primary)}
+.sync-status{font-size:.7rem;color:var(--text3);white-space:nowrap}
+
+/* ─── BOTTOM NAV ─── */
+#bottom-nav{background:var(--bg2);border-top:1px solid var(--border);display:flex;padding:.5rem 0;padding-bottom:env(safe-area-inset-bottom,.5rem)}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:.2rem;padding:.4rem .25rem;cursor:pointer;color:var(--text3);transition:color .2s;font-size:.65rem;font-weight:500;border:none;background:none}
+.nav-item.active{color:var(--primary-light)}
+.nav-item .nav-icon{font-size:1.3rem}
+
+/* ─── MAIN ─── */
+#main{flex:1;overflow-y:auto;overflow-x:hidden}
+.page{display:none;padding:1rem;height:100%;overflow-y:auto}
+.page.active{display:block}
+
+/* ─── CARDS ─── */
+.record-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;margin-bottom:.75rem;transition:all .2s;display:flex;align-items:center;gap:.75rem}
+.record-card:hover{border-color:var(--primary);box-shadow:var(--glow)}
+.record-icon{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;background:var(--bg3)}
+.record-info{flex:1;min-width:0}
+.record-title{font-weight:600;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.record-sub{font-size:.75rem;color:var(--text2);margin-top:.2rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.record-meta{font-size:.65rem;color:var(--text3);margin-top:.4rem;display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
+.record-actions{display:flex;gap:.35rem;flex-shrink:0}
+.tag{display:inline-block;padding:.2rem .5rem;border-radius:4px;font-size:.65rem;font-weight:600;background:rgba(79,70,229,.15);color:var(--primary-light);white-space:nowrap}
+.date-label{color:var(--text3);font-size:.65rem}
+
+/* ─── SECTION HEADER ─── */
+.section-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;margin-top:.5rem}
+.section-title{font-size:1rem;font-weight:700;color:var(--text)}
+.filter-row{display:flex;gap:.5rem;margin-bottom:1rem;overflow-x:auto;padding-bottom:.25rem}
+.filter-chip{padding:.35rem .75rem;border-radius:20px;font-size:.75rem;font-weight:500;border:1px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;white-space:nowrap;transition:all .2s}
+.filter-chip.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+
+/* ─── SETTINGS ─── */
+.settings-section{margin-bottom:2rem}
+.settings-title{font-size:.75rem;color:var(--text3);font-weight:600;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.75rem;padding-bottom:.5rem;border-bottom:1px solid var(--border)}
+.settings-row{display:flex;align-items:center;justify-content:space-between;padding:.75rem 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.settings-label{font-size:.9rem}
+.settings-sublabel{font-size:.75rem;color:var(--text3);margin-top:.15rem}
+.toggle{position:relative;width:44px;height:24px;cursor:pointer}
+.toggle input{opacity:0;width:0;height:0}
+.toggle-slider{position:absolute;inset:0;background:var(--surface2);border-radius:12px;transition:.3s}
+.toggle-slider:before{content:'';position:absolute;height:18px;width:18px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.3s}
+.toggle input:checked + .toggle-slider{background:var(--primary)}
+.toggle input:checked + .toggle-slider:before{transform:translateX(20px)}
+
+/* ─── PASSWORD FIELD ─── */
+.pwd-field{position:relative}
+.pwd-field input{padding-right:2.5rem}
+.pwd-toggle{position:absolute;right:.75rem;top:50%;transform:translateY(-50%);cursor:pointer;color:var(--text3);background:none;border:none;font-size:1rem;padding:.25rem}
+
+/* ─── TOAST ─── */
+#toast{position:fixed;bottom:calc(80px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%) translateY(20px);background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.65rem 1.25rem;font-size:.85rem;z-index:9999;opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap;max-width:90vw}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+#toast.toast-success{border-color:var(--success);color:var(--success)}
+#toast.toast-error{border-color:var(--danger);color:var(--danger)}
+#toast.toast-info{border-color:var(--info);color:var(--info)}
+
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+.empty-state{text-align:center;padding:3rem 1.5rem;color:var(--text3)}
+.empty-text{font-size:.9rem}
+
+@media(min-width:640px){
+  #app{max-width:720px;margin:0 auto;box-shadow:0 0 60px rgba(0,0,0,.5)}
+}
+
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:1.5rem}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;text-align:center}
+.stat-num{font-size:1.75rem;font-weight:700;color:var(--primary-light)}
+.stat-lbl{font-size:.7rem;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-top:.25rem}
+
+.drive-status{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;margin-bottom:1rem;display:flex;align-items:center;gap:.75rem}
+.drive-icon{font-size:1.75rem}
+.drive-info{flex:1}
+.drive-name{font-size:.85rem;font-weight:600}
+.drive-sub{font-size:.75rem;color:var(--text3);margin-top:.2rem}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <div id="login-screen">
+    <div class="login-card">
+      <div class="logo-area">
+        <div class="logo-icon">🔐</div>
+        <div class="logo-title">PWARRUDA V2</div>
+        <div class="logo-sub">Controle de Arquivos Locais com Sincronização Transparente</div>
+      </div>
+      <div class="form-group">
+        <label>Usuário</label>
+        <input type="text" id="login-user" autocomplete="username" placeholder="Usuário">
+      </div>
+      <div class="form-group">
+        <label>Senha Master</label>
+        <div class="pwd-field">
+          <input type="password" id="login-pass" autocomplete="current-password" placeholder="Senha de acesso">
+          <button class="pwd-toggle" onclick="togglePwd('login-pass',this)">👁</button>
+        </div>
+      </div>
+      <div id="login-error" class="error-msg" style="margin-bottom:.75rem"></div>
+      <button class="btn btn-primary btn-full" onclick="doLogin()">Entrar</button>
+    </div>
+    <div class="version-badge" id="login-version"></div>
+  </div>
+
+  <div id="topbar" class="hidden">
+    <span class="topbar-logo">🔐 PWARRUDA</span>
+    <input type="search" class="topbar-search" id="search-input" placeholder="Buscar..." oninput="doSearch(this.value)">
+    <span class="sync-status" id="sync-indicator">💾</span>
+    <button class="btn btn-icon btn-secondary" onclick="showPage('settings')" title="Configurações">⚙️</button>
+  </div>
+
+  <div id="main" class="hidden">
+
+    <div class="page active" id="page-home">
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-num" id="stat-total">0</div><div class="stat-lbl">Total</div></div>
+        <div class="stat-card"><div class="stat-num" id="stat-bank">0</div><div class="stat-lbl">Bancários</div></div>
+        <div class="stat-card"><div class="stat-num" id="stat-sites">0</div><div class="stat-lbl">Sites</div></div>
+        <div class="stat-card"><div class="stat-num" id="stat-logins">0</div><div class="stat-lbl">Logins</div></div>
+      </div>
+      <div class="section-hdr"><span class="section-title">Adicionados Recentemente</span></div>
+      <div id="recent-list"></div>
+    </div>
+
+    <div class="page" id="page-records">
+      <div class="filter-row" id="filter-row">
+        <button class="filter-chip active" onclick="setFilter('all',this)">Todos</button>
+        <button class="filter-chip" onclick="setFilter('bank',this)">🏦 Banco</button>
+        <button class="filter-chip" onclick="setFilter('site',this)">🌐 Site</button>
+        <button class="filter-chip" onclick="setFilter('login',this)">🔑 Login</button>
+        <button class="filter-chip" onclick="setFilter('other',this)">📁 Outros</button>
+      </div>
+      <div id="records-list"></div>
+    </div>
+
+    <div class="page" id="page-form">
+      <div class="section-hdr"><span class="section-title" id="form-page-title">Novo Registro</span></div>
+      <input type="hidden" id="form-record-id">
+      
+      <div class="form-group">
+        <label>Título do Registro</label>
+        <input type="text" id="form-title" placeholder="Ex: Banco do Brasil, Netflix, E-mail">
+      </div>
+      
+      <div class="form-group">
+        <label>Nome de Usuário / Login</label>
+        <input type="text" id="form-username" placeholder="Usuário, e-mail ou documento">
+      </div>
+      
+      <div class="form-group">
+        <label>Senha</label>
+        <div class="pwd-field">
+          <input type="password" id="form-password" placeholder="Digite a senha">
+          <button class="pwd-toggle" onclick="togglePwd('form-password',this)">👁</button>
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label>Categoria</label>
+        <select id="form-type">
+          <option value="login">🔑 Login</option>
+          <option value="bank">🏦 Banco</option>
+          <option value="site">🌐 Site</option>
+          <option value="other">📁 Outro</option>
+        </select>
+      </div>
+      
+      <div style="display:flex;gap:.75rem;margin-top:1.5rem">
+        <button class="btn btn-secondary flex-1" style="flex:1" onclick="cancelarFormulario()">Cancelar</button>
+        <button class="btn btn-primary flex-1" style="flex:1" onclick="salvarFormulario()">Salvar Registro</button>
+      </div>
+    </div>
+
+    <div class="page" id="page-sync">
+      <div class="section-hdr"><span class="section-title">Sincronização de Arquivo Local</span></div>
+      
+      <div class="drive-status">
+        <div class="drive-icon">💾</div>
+        <div class="drive-info">
+          <div class="drive-name" id="local-file-status">Nenhum arquivo vinculado</div>
+          <div class="drive-sub" id="local-file-path">Mapeie o arquivo dentro de pastas monitoradas do Google Drive, OneDrive, Dropbox ou Syncthing.</div>
+        </div>
+      </div>
+
+      <div id="sync-actions" style="display:flex;flex-direction:column;gap:.75rem;margin-bottom:1.5rem">
+        <button class="btn btn-primary btn-full" onclick="vincularArquivoNovo()">📂 Criar ou Vincular Arquivo (.json)</button>
+        <button class="btn btn-secondary btn-full" onclick="carregarArquivoExistente()">📥 Ler / Atualizar do Arquivo Vinculado</button>
+      </div>
+
+      <div style="margin-top:1rem;padding:1rem;background:var(--surface);border-radius:var(--radius);border:1px solid var(--border)">
+        <p style="font-size:.8rem;color:var(--text2);margin-bottom:.75rem;font-weight:bold;">💡 Mecanismo de Sincronia Local:</p>
+        <p style="font-size:.8rem;color:var(--text3);margin-bottom:.5rem;">1. Crie ou aponte o arquivo de dados criptografado na pasta local monitorada pela sua nuvem (ex: <code style="background:#0f0f1a;padding:2px 4px;">G:\Meu Drive\senhas.json</code>).</p>
+        <p style="font-size:.8rem;color:var(--text3);margin-bottom:.5rem;">2. Qualquer modificação no PWA reescreverá este arquivo de forma automática e instantânea.</p>
+        <p style="font-size:.8rem;color:var(--text3);">3. O cliente desktop do provedor de nuvem realiza o transporte transparente entre as máquinas.</p>
+      </div>
+    </div>
+
+    <div class="page" id="page-settings">
+      <div class="settings-section">
+        <div class="settings-title">Informações</div>
+        <div class="settings-row">
+          <div><div class="settings-label">Versão</div><div class="settings-sublabel" id="settings-version"></div></div>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <div class="settings-title">Alterar Senha Master</div>
+        <div class="form-group" style="margin-top:0.5rem">
+          <label>Senha Atual</label>
+          <div class="pwd-field">
+            <input type="password" id="change-pwd-current" placeholder="Digite a senha atual">
+            <button class="pwd-toggle" onclick="togglePwd('change-pwd-current',this)">👁</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Nova Senha Master</label>
+          <div class="pwd-field">
+            <input type="password" id="change-pwd-new" placeholder="Digite a nova senha">
+            <button class="pwd-toggle" onclick="togglePwd('change-pwd-new',this)">👁</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Confirmar Nova Senha</label>
+          <div class="pwd-field">
+            <input type="password" id="change-pwd-confirm" placeholder="Confirme a nova senha">
+            <button class="pwd-toggle" onclick="togglePwd('change-pwd-confirm',this)">👁</button>
+          </div>
+        </div>
+        <button class="btn btn-primary btn-full" onclick="alterarSenhaMestre()">Atualizar Senha Master</button>
+      </div>
+
+      <div class="settings-section">
+        <div class="settings-title">Segurança</div>
+        <div class="settings-row">
+          <div><div class="settings-label">Auto-lock</div><div class="settings-sublabel">Bloquear após inatividade</div></div>
+          <label class="toggle"><input type="checkbox" id="tog-autolock" onchange="saveSetting('autolock',this.checked)"><span class="toggle-slider"></span></label>
+        </div>
+        <div class="settings-row">
+          <div><div class="settings-label">Timeout (minutos)</div></div>
+          <select style="background:var(--bg3);border:1px solid var(--border);color:var(--text);border-radius:var(--radius-sm);padding:.35rem .75rem;font-size:.85rem" id="sel-timeout" onchange="saveSetting('timeout',this.value)">
+            <option value="5">5 min</option>
+            <option value="10">10 min</option>
+            <option value="15" selected>15 min</option>
+            <option value="30">30 min</option>
+            <option value="60">60 min</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <div class="settings-title">Dados e Sessão</div>
+        <div style="display:flex;flex-direction:column;gap:.75rem">
+          <button class="btn btn-secondary" onclick="exportData()">📤 Exportar Cópia de Segurança (JSON)</button>
+          <button class="btn btn-secondary" onclick="document.getElementById('import-file').click()">📥 Importar Cópia de Dados</button>
+          <input type="file" id="import-file" accept=".json" class="hidden" onchange="importData(event)">
+          <button class="btn btn-danger" onclick="confirmClearData()">🗑️ Limpar Armazenamento Local</button>
+          <button class="btn btn-secondary" onclick="doLogout()">🚪 Terminar Sessão</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div id="bottom-nav" class="hidden">
+    <button class="nav-item active" id="nav-home" onclick="showPage('home')">
+      <span class="nav-icon">🏠</span><span>Início</span>
+    </button>
+    <button class="nav-item" id="nav-form" onclick="abrirFormularioNovo()">
+      <span class="nav-icon">➕</span><span>Adicionar</span>
+    </button>
+    <button class="nav-item" id="nav-records" onclick="showPage('records')">
+      <span class="nav-icon">🔑</span><span>Registros</span>
+    </button>
+    <button class="nav-item" id="nav-sync" onclick="showPage('sync')">
+      <span class="nav-icon">💾</span><span>Arquivo</span>
+    </button>
+    <button class="nav-item" id="nav-settings" onclick="showPage('settings')">
+      <span class="nav-icon">⚙️</span><span>Opções</span>
+    </button>
+  </div>
+
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// PWARRUDA V2 — Core Application Engine
+// ═══════════════════════════════════════════════════════════
+
+const APP = {
+  name: 'PWARRUDA V2',
+  build: '03',
+  get fullName(){ return `${this.name} Build ${this.build}` },
+  encKey: null,
+  db: null,
+  currentPage: 'home',
+  currentFilter: 'all',
+  searchQuery: '',
+  lockTimer: null,
+  settings: {},
+  fileHandle: null,
+  fileName: null
+};
+
+const ADMIN_USER_KEY = 'pwarruda_admin_user';
+const ADMIN_PASS_HASH_KEY = 'pwarruda_admin_hash';
+const DB_KEY = 'pwarruda_db';
+const SETTINGS_KEY = 'pwarruda_settings';
+const SESSION_KEY = 'pwarruda_session';
+
+// ─── CRYPTO ENGINE ───
+const Crypto = {
+  async deriveKey(password, salt) {
+    const enc = new TextEncoder();
+    const keyMaterial = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveKey']);
+    return crypto.subtle.deriveKey(
+      { name: 'PBKDF2', salt: enc.encode(salt), iterations: 100000, hash: 'SHA-256' },
+      keyMaterial, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']
+    );
+  },
+  async encrypt(data, key) {
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const enc = new TextEncoder();
+    const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, enc.encode(JSON.stringify(data)));
+    const buf = new Uint8Array(iv.length + ct.byteLength);
+    buf.set(iv, 0); buf.set(new Uint8Array(ct), iv.length);
+    return btoa(String.fromCharCode(...buf));
+  },
+  async decrypt(b64, key) {
+    const buf = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+    const iv = buf.slice(0, 12);
+    const ct = buf.slice(12);
+    const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ct);
+    return JSON.parse(new TextDecoder().decode(pt));
+  },
+  async hashPassword(pass) {
+    const enc = new TextEncoder();
+    const h = await crypto.subtle.digest('SHA-256', enc.encode(pass + 'pwarruda_salt_v2'));
+    return Array.from(new Uint8Array(h)).map(b => b.toString(16).padStart(2,'0')).join('');
+  }
+};
+
+function newDB() {
+  return { version: 1, records: [], categories: [], backups: [], lastSync: null, lastModified: Date.now() };
+}
+
+// ─── PERSISTÊNCIA ───
+const Store = {
+  async saveDB() {
+    if (!APP.encKey) return;
+    APP.db.lastModified = Date.now();
+    const encrypted = await Crypto.encrypt(APP.db, APP.encKey);
+    localStorage.setItem(DB_KEY, encrypted);
+    updateSyncIndicator();
+
+    if (APP.fileHandle) {
+      await gravarDadosNoArquivoVinculado();
+    }
+  },
+  async loadDB() {
+    const raw = localStorage.getItem(DB_KEY);
+    if (!raw) { APP.db = newDB(); return; }
+    try {
+      APP.db = await Crypto.decrypt(raw, APP.encKey);
+      if (!APP.db.records) APP.db.records = [];
+    } catch(e) { APP.db = newDB(); }
+  },
+  saveSetting(k, v) {
+    APP.settings[k] = v;
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(APP.settings));
+    setupAutoLock();
+  },
+  loadSettings() {
+    const raw = localStorage.getItem(SETTINGS_KEY);
+    APP.settings = raw ? JSON.parse(raw) : { autolock: false, timeout: 15 };
+  }
+};
+
+function saveSetting(k, v) { Store.saveSetting(k, v); }
+
+// ─── FILE SYSTEM ACCESS CORE ───
+async function verificarPermissaoArquivo(fileHandle, readWrite) {
+  const options = {};
+  if (readWrite) options.mode = 'readwrite';
+  if ((await fileHandle.queryPermission(options)) === 'granted') return true;
+  if ((await fileHandle.requestPermission(options)) === 'granted') return true;
+  return false;
+}
+
+async function vincularArquivoNovo() {
+  if (!APP.encKey) { showToast('Efetue login antes de criar arquivos.', 'error'); return; }
+  const options = {
+    suggestedName: 'senhas.json',
+    types: [{ description: 'Arquivo de Dados Criptografados', accept: { 'application/json': ['.json'] } }]
+  };
+  try {
+    const handle = await window.showSaveFilePicker(options);
+    APP.fileHandle = handle;
+    APP.fileName = handle.name;
+    await gravarDadosNoArquivoVinculado();
+    await salvarReferenciaArquivo(handle);
+    atualizarUIArquivo();
+    showToast('Arquivo criado e vinculado com sucesso!', 'success');
+  } catch (err) {
+    if (err.name !== 'AbortError') showToast('Falha ao vincular o arquivo.', 'error');
+  }
+}
+
+async function carregarArquivoExistente() {
+  if (!APP.encKey) { showToast('Efetue login antes de processar arquivos.', 'error'); return; }
+  const options = {
+    types: [{ description: 'Arquivo de Dados Criptografados', accept: { 'application/json': ['.json'] } }],
+    multiple: false
+  };
+  try {
+    const [handle] = await window.showOpenFilePicker(options);
+    APP.fileHandle = handle;
+    APP.fileName = handle.name;
+    await lerDadosDoArquivoVinculado();
+    await salvarReferenciaArquivo(handle);
+    atualizarUIArquivo();
+  } catch (err) {
+    if (err.name !== 'AbortError') showToast('Erro ao ler o arquivo selecionado.', 'error');
+  }
+}
+
+async function lerDadosDoArquivoVinculado() {
+  if (!APP.fileHandle) return;
+  try {
+    if (!(await verificarPermissaoArquivo(APP.fileHandle, false))) {
+      showToast('Permissão de leitura negada.', 'error');
+      return;
+    }
+    const file = await APP.fileHandle.getFile();
+    const textoCriptografado = await file.text();
+    if (!textoCriptografado.trim()) { showToast('Arquivo em branco disponível para gravação.', 'info'); return; }
+
+    const bancoDescriptografado = await Crypto.decrypt(textoCriptografado, APP.encKey);
+    if (bancoDescriptografado && bancoDescriptografado.records) {
+      APP.db = bancoDescriptografado;
+      localStorage.setItem(DB_KEY, textoCriptografado);
+      showToast('Dados sincronizados com o arquivo local!', 'success');
+      refreshCurrentPage();
+    }
+  } catch (err) {
+    console.error(err);
+    showToast('Senha inválida ou arquivo de dados corrompido.', 'error');
+  }
+}
+
+async function gravarDadosNoArquivoVinculado() {
+  if (!APP.fileHandle || !APP.db) return;
+  try {
+    if (!(await verificarPermissaoArquivo(APP.fileHandle, true))) return;
+    const textoCriptografado = await Crypto.encrypt(APP.db, APP.encKey);
+    const writable = await APP.fileHandle.createWritable();
+    await writable.write(textoCriptografado);
+    await writable.close();
+  } catch (err) {
+    console.error(err);
+    showToast('Erro ao gravar atualizações no arquivo local.', 'error');
+  }
+}
+
+function atualizarUIArquivo() {
+  const statusEl = document.getElementById('local-file-status');
+  const pathEl = document.getElementById('local-file-path');
+  if (APP.fileHandle && APP.fileName) {
+    statusEl.textContent = `🔗 Vinculado ao arquivo: ${APP.fileName}`;
+    pathEl.innerHTML = `Todas as alterações efetuadas serão salvas de forma imediata neste arquivo local.`;
+  } else {
+    statusEl.textContent = 'Nenhum arquivo local vinculado';
+    pathEl.textContent = 'Mapeie um arquivo .json persistido na sua pasta de sincronização na nuvem.';
+  }
+}
+
+// ─── INDEXEDDB REFERÊNCIA ARQUIVO ───
+function salvarReferenciaArquivo(handle) {
+  return new Promise((resolve) => {
+    const request = indexedDB.open("pwarruda_local_storage", 1);
+    request.onupgradeneeded = (e) => e.target.result.createObjectStore("handles");
+    request.onsuccess = (e) => {
+      const tx = e.target.result.transaction("handles", "readwrite");
+      tx.objectStore("handles").put(handle, "ultimo_handle");
+      tx.oncomplete = () => resolve();
+    };
+  });
+}
+
+function carregarReferenciaArquivoSalva() {
+  return new Promise((resolve) => {
+    const request = indexedDB.open("pwarruda_local_storage", 1);
+    request.onupgradeneeded = (e) => e.target.result.createObjectStore("handles");
+    request.onsuccess = (e) => {
+      const tx = e.target.result.transaction("handles", "readonly");
+      const getReq = tx.objectStore("handles").get("ultimo_handle");
+      getReq.onsuccess = () => {
+        if (getReq.result) {
+          APP.fileHandle = getReq.result;
+          APP.fileName = getReq.result.name;
+          atualizarUIArquivo();
+        }
+        resolve();
+      };
+    };
+  });
+}
+
+// ─── ALTERAÇÃO DE SENHA MASTER ───
+async function alterarSenhaMestre() {
+  const senhaAtual = document.getElementById('change-pwd-current').value;
+  const novaSenha = document.getElementById('change-pwd-new').value;
+  const confirmacaoSenha = document.getElementById('change-pwd-confirm').value;
+
+  if (!senhaAtual || !novaSenha || !confirmacaoSenha) {
+    showToast('Preencha todos os campos para realizar a alteração.', 'error');
+    return;
+  }
+  if (novaSenha !== confirmacaoSenha) {
+    showToast('A nova senha e a confirmação não coincidem.', 'error');
+    return;
+  }
+  if (novaSenha.length < 6) {
+    showToast('A nova senha deve possuir pelo menos 6 caracteres.', 'error');
+    return;
+  }
+
+  try {
+    const user = localStorage.getItem(ADMIN_USER_KEY);
+    const hashArmazenado = localStorage.getItem(ADMIN_PASS_HASH_KEY);
+    const hashAtualDigitado = await Crypto.hashPassword(senhaAtual);
+
+    if (hashAtualDigitado !== hashArmazenado) {
+      showToast('Senha atual incorreta.', 'error');
+      return;
+    }
+
+    const novaChaveDerivada = await Crypto.deriveKey(novaSenha, 'pwarruda_aes256_' + user);
+    const novoHashSenha = await Crypto.hashPassword(novaSenha);
+
+    localStorage.setItem(ADMIN_PASS_HASH_KEY, novoHashSenha);
+    APP.encKey = novaChaveDerivada;
+
+    await Store.saveDB();
+
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify({ user, ts: Date.now() }));
+
+    document.getElementById('change-pwd-current').value = '';
+    document.getElementById('change-pwd-new').value = '';
+    document.getElementById('change-pwd-confirm').value = '';
+
+    showToast('Senha master e arquivos atualizados com sucesso!', 'success');
+  } catch (err) {
+    console.error(err);
+    showToast('Erro ao processar a alteração de senha.', 'error');
+  }
+}
+
+// ─── LOGIN & SESSÃO ───
+async function doLogin() {
+  const user = document.getElementById('login-user').value.trim();
+  const pass = document.getElementById('login-pass').value;
+  const errEl = document.getElementById('login-error');
+  errEl.textContent = '';
+
+  let storedUser = localStorage.getItem(ADMIN_USER_KEY);
+  let storedHash = localStorage.getItem(ADMIN_PASS_HASH_KEY);
+
+  if (!storedUser || !storedHash) {
+    storedUser = user;
+    storedHash = await Crypto.hashPassword(pass);
+    localStorage.setItem(ADMIN_USER_KEY, storedUser);
+    localStorage.setItem(ADMIN_PASS_HASH_KEY, storedHash);
+  }
+
+  if (user !== storedUser) { errEl.textContent = 'Usuário inválido.'; return; }
+
+  const inputHash = await Crypto.hashPassword(pass);
+  if (inputHash !== storedHash) { errEl.textContent = 'Senha incorreta.'; return; }
+
+  APP.encKey = await Crypto.deriveKey(pass, 'pwarruda_aes256_' + user);
+  Store.loadSettings();
+  await Store.loadDB();
+
+  sessionStorage.setItem(SESSION_KEY, JSON.stringify({ user, ts: Date.now() }));
+  await initApp();
+}
+
+async function doLogout() {
+  APP.encKey = null;
+  APP.db = null;
+  APP.fileHandle = null;
+  APP.fileName = null;
+  sessionStorage.removeItem(SESSION_KEY);
+  document.getElementById('login-screen').classList.remove('hidden');
+  document.getElementById('topbar').classList.add('hidden');
+  document.getElementById('main').classList.add('hidden');
+  document.getElementById('bottom-nav').classList.add('hidden');
+  clearLockTimer();
+}
+
+async function initApp() {
+  document.getElementById('login-screen').classList.add('hidden');
+  document.getElementById('topbar').classList.remove('hidden');
+  document.getElementById('main').classList.remove('hidden');
+  document.getElementById('bottom-nav').classList.remove('hidden');
+
+  updateVersionDisplay();
+  renderDashboard();
+  renderRecords();
+  atualizarUIArquivo();
+  loadSettingsUI();
+  setupAutoLock();
+
+  await carregarReferenciaArquivoSalva();
+  if (APP.fileHandle) {
+    await lerDadosDoArquivoVinculado();
+  }
+}
+
+function updateVersionDisplay() {
+  const v = `${APP.name} Build ${APP.build}`;
+  if (document.getElementById('settings-version')) document.getElementById('settings-version').textContent = v;
+  if (document.getElementById('login-version')) document.getElementById('login-version').textContent = v;
+}
+
+// ─── NAVEGAÇÃO ───
+function showPage(p) {
+  document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  if (document.getElementById('page-' + p)) document.getElementById('page-' + p).classList.add('active');
+  if (document.getElementById('nav-' + p)) document.getElementById('nav-' + p).classList.add('active');
+  APP.currentPage = p;
+  refreshCurrentPage();
+  document.getElementById('main').scrollTop = 0;
+}
+
+function refreshCurrentPage() {
+  if (APP.currentPage === 'home') renderDashboard();
+  if (APP.currentPage === 'records') renderRecords();
+  if (APP.currentPage === 'sync') atualizarUIArquivo();
+}
+
+// ─── FORMULÁRIO (INSERÇÃO / EDIÇÃO SEM POPUPS) ───
+function abrirFormularioNovo() {
+  document.getElementById('form-page-title').textContent = 'Novo Registro';
+  document.getElementById('form-record-id').value = '';
+  document.getElementById('form-title').value = '';
+  document.getElementById('form-username').value = '';
+  document.getElementById('form-password').value = '';
+  document.getElementById('form-type').value = 'login';
+  showPage('form');
+}
+
+function editarRegistro(id) {
+  const r = APP.db.records.find(x => x.id === id);
+  if (!r) return;
+
+  document.getElementById('form-page-title').textContent = 'Editar Registro';
+  document.getElementById('form-record-id').value = r.id;
+  document.getElementById('form-title').value = r.title || '';
+  document.getElementById('form-username').value = r.username || '';
+  document.getElementById('form-password').value = r.password || '';
+  document.getElementById('form-type').value = r.type || 'login';
+  showPage('form');
+}
+
+function cancelarFormulario() {
+  showPage('records');
+}
+
+async function salvarFormulario() {
+  const id = document.getElementById('form-record-id').value;
+  const title = document.getElementById('form-title').value.trim();
+  const username = document.getElementById('form-username').value.trim();
+  const password = document.getElementById('form-password').value;
+  const type = document.getElementById('form-type').value;
+
+  if (!title) {
+    showToast('O título do registro é obrigatório.', 'error');
+    return;
+  }
+
+  if (id) {
+    // Modo Edição
+    const idx = APP.db.records.findIndex(x => x.id === id);
+    if (idx !== -1) {
+      APP.db.records[idx].title = title;
+      APP.db.records[idx].username = username;
+      APP.db.records[idx].password = password;
+      APP.db.records[idx].type = type;
+      APP.db.records[idx].updatedAt = Date.now();
+      showToast('Registro atualizado com sucesso!', 'success');
+    }
+  } else {
+    // Modo Inserção
+    const newRecord = {
+      id: crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2),
+      title,
+      username,
+      password,
+      type,
+      createdAt: Date.now(),
+      updatedAt: Date.now()
+    };
+    APP.db.records.push(newRecord);
+    showToast('Registro adicionado com sucesso!', 'success');
+  }
+
+  await Store.saveDB();
+  showPage('records');
+}
+
+async function excluirRegistro(id) {
+  if (!confirm('Confirma a exclusão definitiva deste registro?')) return;
+  
+  const idx = APP.db.records.findIndex(x => x.id === id);
+  if (idx !== -1) {
+    APP.db.records.splice(idx, 1);
+    await Store.saveDB();
+    showToast('Registro removido do banco de dados.', 'success');
+    refreshCurrentPage();
+  }
+}
+
+// ─── RENDERIZADORES VISUAIS ───
+function renderDashboard() {
+  if (!APP.db) return;
+  const records = APP.db.records || [];
+  document.getElementById('stat-total').textContent = records.length;
+  document.getElementById('stat-bank').textContent = records.filter(r=>r.type=='bank').length;
+  document.getElementById('stat-sites').textContent = records.filter(r=>r.type=='site').length;
+  document.getElementById('stat-logins').textContent = records.filter(r=>r.type=='login').length;
+
+  const recent = [...records].sort((a,b)=>(b.updatedAt||b.createdAt)-(a.updatedAt||a.createdAt)).slice(0,5);
+  const rl = document.getElementById('recent-list');
+  rl.innerHTML = recent.length ? recent.map(r=>recordCardHTML(r)).join('') : '<div class="empty-state"><div class="empty-text">Nenhum registro encontrado.</div></div>';
+}
+
+function getFilteredRecords() {
+  if (!APP.db) return [];
+  let recs = [...APP.db.records];
+  if (APP.currentFilter !== 'all') recs = recs.filter(r => r.type === APP.currentFilter);
+  if (APP.searchQuery) {
+    const q = APP.searchQuery.toLowerCase();
+    recs = recs.filter(r => (r.title||'').toLowerCase().includes(q) || (r.username||'').toLowerCase().includes(q));
+  }
+  return recs;
+}
+
+function renderRecords() {
+  const list = document.getElementById('records-list');
+  if (!list) return;
+  const recs = getFilteredRecords();
+  list.innerHTML = recs.length ? recs.map(r=>recordCardHTML(r)).join('') : '<div class="empty-state"><div class="empty-text">Vazio.</div></div>';
+}
+
+function formatarDataExibicao(timestamp) {
+  if (!timestamp) return 'N/A';
+  const d = new Date(timestamp);
+  return d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
+}
+
+function recordCardHTML(r) {
+  const typeLabel = {bank:'Banco',site:'Site',login:'Login',other:'Outro'}[r.type]||'Outro';
+  const ultimaEdicao = formatarDataExibicao(r.updatedAt || r.createdAt);
+  
+  return `<div class="record-card">
+    <div class="record-icon">🔑</div>
+    <div class="record-info">
+      <div class="record-title">${escHtml(r.title)}</div>
+      <div class="record-sub">${escHtml(r.username||'')}</div>
+      <div class="record-meta">
+        <span class="tag">${typeLabel}</span>
+        <span class="date-label">Modificado: ${ultimaEdicao}</span>
+      </div>
+    </div>
+    <div class="record-actions">
+      <button class="btn btn-icon btn-secondary btn-sm" onclick="copyPassword('${r.id}')" title="Copiar Senha">📋</button>
+      <button class="btn btn-icon btn-secondary btn-sm" onclick="editarRegistro('${r.id}')" title="Editar">✏️</button>
+      <button class="btn btn-icon btn-danger btn-sm" onclick="excluirRegistro('${r.id}')" title="Excluir">🗑️</button>
+    </div>
+  </div>`;
+}
+
+function setFilter(f, el) {
+  APP.currentFilter = f;
+  document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
+  if (el) el.classList.add('active');
+  renderRecords();
+}
+
+function doSearch(q) {
+  APP.searchQuery = q;
+  renderRecords();
+}
+
+function copyPassword(id) {
+  const r = APP.db.records.find(x=>x.id===id);
+  if (r && r.password) {
+    navigator.clipboard.writeText(r.password);
+    showToast('Senha copiada para a área de transferência!', 'success');
+  }
+}
+
+// ─── CONFIGURAÇÕES AUXILIARES ───
+function loadSettingsUI() {
+  if (document.getElementById('tog-autolock')) document.getElementById('tog-autolock').checked = !!APP.settings.autolock;
+  if (document.getElementById('sel-timeout')) document.getElementById('sel-timeout').value = APP.settings.timeout || 15;
+}
+
+function setupAutoLock() {
+  clearLockTimer();
+  if (APP.settings.autolock) {
+    const ms = (APP.settings.timeout || 15) * 60 * 1000;
+    APP.lockTimer = setTimeout(() => { doLogout(); showToast('Sessão encerrada por inatividade.', 'info'); }, ms);
+  }
+}
+
+function clearLockTimer() { if (APP.lockTimer) clearTimeout(APP.lockTimer); }
+function updateSyncIndicator() {
+  const ind = document.getElementById('sync-indicator');
+  if (ind) { ind.textContent = '🟢'; setTimeout(() => ind.textContent = '💾', 1000); }
+}
+
+function exportData() {
+  if(!APP.db) return;
+  const blob = new Blob([JSON.stringify(APP.db, null, 2)], {type: 'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'backup_seguro.json';
+  a.click();
+}
+
+function importData(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async function(evt) {
+    try {
+      const parsed = JSON.parse(evt.target.result);
+      if (parsed && parsed.records) {
+        APP.db = parsed;
+        await Store.saveDB();
+        refreshCurrentPage();
+        showToast('Dados manuais importados com sucesso.', 'success');
+      }
+    } catch(err) { showToast('Arquivo de importação inválido.', 'error'); }
+  };
+  reader.readAsText(file);
+}
+
+function confirmClearData() {
+  if (confirm("Confirma a eliminação de todos os dados locais do PWA?")) {
+    localStorage.clear();
+    location.reload();
+  }
+}
+
+function escHtml(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function togglePwd(id, btn) {
+  const inp = document.getElementById(id);
+  if (!inp) return;
+  if (inp.type === 'password') { inp.type = 'text'; if(btn) btn.textContent = '🙈'; }
+  else { inp.type = 'password'; if(btn) btn.textContent = '👁'; }
+}
+
+let toastTimer;
+function showToast(msg, type='info') {
+  const el = document.getElementById('toast');
+  if (!el) return;
+  clearTimeout(toastTimer);
+  el.textContent = msg;
+  el.className = `toast-${type} show`;
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2800);
+}
+</script>
+</body>
+</html>
