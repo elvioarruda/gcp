@@ -126,8 +126,8 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
 .toggle input:checked + .toggle-slider:before{transform:translateX(20px)}
 
 /* ─── CATEGORIES MANAGEMENT ─── */
-.category-manager-item{display:flex;align-items:center;justify-content:space-between;background:var(--bg3);padding:.5rem .75rem;border-radius:var(--radius-sm);margin-bottom:.5rem;border:1px solid rgba(255,255,255,0.05)}
-.category-manager-name{font-size:.85rem;display:flex;align-items:center;gap:.5rem}
+.category-manager-item{display:flex;align-items:center;justify-content:space-between;background:var(--surface);padding:.75rem 1rem;border-radius:var(--radius-sm);margin-bottom:.5rem;border:1px solid var(--border)}
+.category-manager-name{font-size:.9rem;display:flex;align-items:center;gap:.5rem;font-weight:500}
 
 /* ─── PASSWORD FIELD ─── */
 .pwd-field{position:relative}
@@ -229,6 +229,21 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
       <div id="records-list"></div>
     </div>
 
+    <div class="page" id="page-categories">
+      <div class="section-hdr"><span class="section-title">Gerenciar Categorias</span></div>
+      
+      <div style="background:var(--surface); border:1px solid var(--border); padding:1.25rem; border-radius:var(--radius); margin-bottom:1.5rem">
+        <div class="form-group" style="margin-bottom:0.75rem">
+          <label>Nova Categoria</label>
+          <input type="text" id="new-cat-name" placeholder="Ex: 🚀 Trabalho, 🎮 Jogos">
+        </div>
+        <button class="btn btn-primary btn-full" onclick="adicionarCategoriaCustomizada()">✨ Adicionar Nova Categoria</button>
+      </div>
+
+      <div class="section-hdr"><span class="section-title" style="font-size:0.9rem; color:var(--text2)">Categorias Cadastradas</span></div>
+      <div id="categories-manager-list"></div>
+    </div>
+
     <div class="page" id="page-form">
       <div class="section-hdr"><span class="section-title" id="form-page-title">Novo Registro</span></div>
       <input type="hidden" id="form-record-id">
@@ -323,15 +338,6 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
 
     <div class="page" id="page-settings">
       <div class="settings-section">
-        <div class="settings-title">Gerenciamento de Categorias</div>
-        <div style="display:flex;gap:0.5rem;margin-bottom:1rem">
-          <input type="text" id="new-cat-name" placeholder="Ex: 🚀 Trabalho, 🎮 Jogos" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);border-radius:var(--radius-sm);padding:.5rem .75rem;font-size:.85rem;flex:1;outline:none">
-          <button class="btn btn-primary btn-sm" onclick="adicionarCategoriaCustomizada()">Adicionar</button>
-        </div>
-        <div id="categories-manager-list"></div>
-      </div>
-
-      <div class="settings-section">
         <div class="settings-title">Informações</div>
         <div class="settings-row">
           <div><div class="settings-label">Versão</div><div class="settings-sublabel" id="settings-version"></div></div>
@@ -405,6 +411,9 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
     <button class="nav-item" id="nav-records" onclick="showPage('records')">
       <span class="nav-icon material-symbols-outlined">vpn_key</span><span>Registros</span>
     </button>
+    <button class="nav-item" id="nav-categories" onclick="showPage('categories')">
+      <span class="nav-icon material-symbols-outlined">bookmarks</span><span>Categorias</span>
+    </button>
     <button class="nav-item" id="nav-sync" onclick="showPage('sync')">
       <span class="nav-icon material-symbols-outlined">database</span><span>Arquivo</span>
     </button>
@@ -424,7 +433,7 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
 
 const APP = {
   name: 'PWARRUDA V2',
-  build: '10',
+  build: '11',
   get fullName(){ return `${this.name} Build ${this.build}` },
   encKey: null,
   db: null,
@@ -716,7 +725,7 @@ async function alterarSenhaMestre() {
     document.getElementById('change-pwd-new').value = '';
     document.getElementById('change-pwd-confirm').value = '';
 
-    showToast('Senha master e arquivos atualizados com sucesso!', 'success');
+    showToast('Senha master e arquivos updated com sucesso!', 'success');
   } catch (err) {
     console.error(err);
     showToast('Erro ao processar a alteração de senha.', 'error');
@@ -816,16 +825,16 @@ function renderCategoryManager() {
   if (!managerList || !APP.db || !APP.db.categories) return;
 
   if (APP.db.categories.length === 0) {
-    managerList.innerHTML = '<div style="font-size:0.8rem; color:var(--text3)">Nenhuma categoria customizada cadastrada.</div>';
+    managerList.innerHTML = '<div class="empty-state"><div class="empty-text">Nenhuma categoria customizada cadastrada.</div></div>';
     return;
   }
 
   managerList.innerHTML = APP.db.categories.map(c => `
     <div class="category-manager-item">
-      <span class="category-manager-name" id="cat-label-text-${c.id}">${escHtml(c.label)}</span>
-      <div style="display:flex; gap:0.25rem">
-        <button class="btn btn-secondary btn-sm" style="padding:0.2rem 0.4rem;" onclick="editarCategoriaCustomizada('${c.id}')" title="Editar">✏️</button>
-        <button class="btn btn-danger btn-sm" style="padding:0.2rem 0.4rem;" onclick="removerCategoriaCustomizada('${c.id}')" title="Remover">🗑️</button>
+      <span class="category-manager-name">${escHtml(c.label)}</span>
+      <div style="display:flex; gap:0.35rem">
+        <button class="btn btn-secondary btn-sm" style="padding:0.35rem 0.6rem;" onclick="editarCategoriaCustomizada('${c.id}')" title="Editar Nome">✏️</button>
+        <button class="btn btn-danger btn-sm" style="padding:0.35rem 0.6rem;" onclick="removerCategoriaCustomizada('${c.id}')" title="Remover Categoria">🗑️</button>
       </div>
     </div>
   `).join('');
@@ -866,7 +875,7 @@ async function editarCategoriaCustomizada(id) {
 
   cat.label = val;
   await Store.saveDB();
-  showToast('Categoria updated!', 'success');
+  showToast('Categoria atualizada com sucesso!', 'success');
   dinamizarElementosUI();
   renderCategoryManager();
   renderDashboard();
@@ -909,8 +918,8 @@ function showPage(p) {
 function refreshCurrentPage() {
   if (APP.currentPage === 'home') renderDashboard();
   if (APP.currentPage === 'records') renderRecords();
+  if (APP.currentPage === 'categories') renderCategoryManager();
   if (APP.currentPage === 'sync') atualizarUIArquivo();
-  if (APP.currentPage === 'settings') renderCategoryManager();
 }
 
 // ─── INTERFACE DE IMPORTAÇÃO EM LOTE ───
@@ -935,7 +944,7 @@ function toggleBatchMode(isBatch) {
   }
 }
 
-async function executarImportacaoEmLote() {
+async function ejecutarImportacaoEmLote() {
   const textInput = document.getElementById('batch-text-input').value;
   if (!textInput.trim()) {
     showToast('Insira dados de texto válidos para processamento.', 'error');
@@ -949,13 +958,9 @@ async function executarImportacaoEmLote() {
     const linha = linhas[i].trim();
     if (!linha) continue;
 
-    // Quebra a linha usando o delimitador ponto e vírgula
     const partes = linha.split(';');
-    
-    // Mapeamento posicional: <Título>;<Usuário>;<Senha>;<Opcional 01>;<Opcional 02>;<Observações>
     const title = partes[0] ? partes[0].trim() : '';
     
-    // Ignora a linha caso o título essencial esteja totalmente omitido
     if (!title) continue;
 
     const username = partes[1] ? partes[1].trim() : '';
@@ -971,7 +976,7 @@ async function executarImportacaoEmLote() {
       password,
       optional01,
       optional02,
-      type: 'login', // Categoria padrão inicial para dados importados em lote
+      type: 'login',
       notes,
       createdAt: Date.now(),
       updatedAt: Date.now()
@@ -983,9 +988,8 @@ async function executarImportacaoEmLote() {
 
   if (contagemSucesso > 0) {
     await Store.saveDB();
-    showToast(`${contagemSucesso} registros importados com sucesso!`, 'success');
+    showToast(`${contagemSucesso} arquivos importados com sucesso!`, 'success');
     
-    // Reseta o estado do formulário e retorna à listagem
     document.getElementById('batch-text-input').value = '';
     document.getElementById('chk-batch-mode').checked = false;
     toggleBatchMode(false);
@@ -1027,7 +1031,6 @@ function editarRegistro(id) {
   
   document.getElementById('chk-batch-mode').checked = false;
   toggleBatchMode(false);
-  // Oculta a caixa de seleção de lote durante a edição de um registro existente
   document.getElementById('batch-toggle-container').classList.add('hidden');
 
   document.getElementById('form-page-title').textContent = 'Editar Registro';
