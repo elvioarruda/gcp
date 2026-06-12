@@ -199,7 +199,7 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
   <div id="topbar" class="hidden">
     <span class="topbar-logo">🔐 PWA</span>
     <input type="search" class="topbar-search" id="search-input" placeholder="Buscar..." oninput="doSearch(this.value)">
-    <span class="sync-status material-symbols-outlined" id="sync-indicator" title="Sincronização local ativa">sync_saved_locally</span>
+    <span class="sync-status material-symbols-outlined" id="sync-indicator" title="Sincronização local activa">sync_saved_locally</span>
     <button class="btn btn-icon btn-secondary" onclick="doLogout()" title="Sair do Aplicativo">
       <span class="material-symbols-outlined">logout</span>
     </button>
@@ -278,6 +278,11 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
       
       <div id="form-fields-standard">
         <div class="form-group">
+          <label>Categoria</label>
+          <select id="form-type"></select>
+        </div>
+
+        <div class="form-group">
           <label>Título do Registro</label>
           <input type="text" id="form-title" placeholder="Ex: Banco do Brasil, Netflix, E-mail">
         </div>
@@ -303,11 +308,6 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
         <div class="form-group">
           <label>Opcional 02</label>
           <input type="text" id="form-optional02" placeholder="Informação opcional complementar 2">
-        </div>
-        
-        <div class="form-group">
-          <label>Categoria</label>
-          <select id="form-type"></select>
         </div>
 
         <div class="form-group">
@@ -458,7 +458,7 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
 
 const APP = {
   name: 'PWARRUDA V2',
-  build: '12',
+  build: '13',
   get fullName(){ return `${this.name} Build ${this.build}` },
   encKey: null,
   db: null,
@@ -889,7 +889,6 @@ async function processarFormularioCategoria() {
   }
 
   if (editId) {
-    // Modo de edição
     const cat = APP.db.categories.find(c => c.id === editId);
     if (cat) {
       cat.label = nameVal;
@@ -898,7 +897,6 @@ async function processarFormularioCategoria() {
     }
     cancelarEdicaoCategoria();
   } else {
-    // Modo de inserção
     const id = 'cat_' + Date.now() + Math.random().toString(36).substring(2, 5);
     APP.db.categories.push({ id, label: nameVal, icon: iconVal });
     inputName.value = '';
@@ -1135,7 +1133,7 @@ async function salvarFormulario() {
       APP.db.records[idx].type = type;
       APP.db.records[idx].notes = notes;
       APP.db.records[idx].updatedAt = Date.now();
-      showToast('Registro updated com sucesso!', 'success');
+      showToast('Registro atualizado com sucesso!', 'success');
     }
   } else {
     const newRecord = {
