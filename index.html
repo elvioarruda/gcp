@@ -121,7 +121,6 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
   display: none;
 }
 
-/* Otimização visual dos botões de categoria conforme solicitação */
 .filter-chip {
   font-size: 0.75rem;
   font-weight: 600;
@@ -270,48 +269,33 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
       
       <div style="background:var(--surface); border:1px solid var(--border); padding:1.25rem; border-radius:var(--radius); margin-bottom:1.5rem">
         <input type="hidden" id="edit-cat-id">
-        <div style="display:grid; grid-template-columns: 80px 1fr; gap:0.75rem; margin-bottom:0.75rem">
+        <div style="display:grid; grid-template-columns: 65px 1fr; gap:0.75rem; margin-bottom:0.75rem">
           <div class="form-group" style="margin-bottom:0">
             <label>Ícone</label>
-            <select id="new-cat-icon" style="text-align:center; font-size:1.1rem; padding:.65rem 0.5rem">
-              <optgroup label="Segurança & Padrão">
-                <option value="🔑">🔑 Chave</option>
-                <option value="🔒">🔒 Cadeado</option>
-                <option value="📁">📁 Pasta</option>
-                <option value="📝">📝 Notas</option>
-              </optgroup>
-              <optgroup label="Mídias Sociais & Comunicação">
-                <option value="📱">📱 Social</option>
-                <option value="💬">💬 Chat</option>
-                <option value="📧">📧 E-mail</option>
-                <option value="🌐">🌐 Web</option>
-                <option value="🔔">🔔 Alertas</option>
-              </optgroup>
-              <optgroup label="Música & Entretenimento">
-                <option value="🎵">🎵 Música</option>
-                <option value="🎧">🎧 Fones</option>
-                <option value="🎬">🎬 Vídeos</option>
-                <option value="🎮">🎮 Jogos</option>
-              </optgroup>
-              <optgroup label="Finanças & Compras">
-                <option value="🏦">🏦 Banco</option>
-                <option value="💳">💳 Cartão</option>
-                <option value="💰">💰 Dinheiro</option>
-                <option value="🛒">🛒 Compras</option>
-                <option value="🏷️">🏷️ Cupons</option>
-              </optgroup>
-              <optgroup label="Produtividade & Trabalho">
-                <option value="📅">📅 Agenda</option>
-                <option value="📊">📊 Métricas</option>
-                <option value="🛠️">🛠️ Suporte</option>
-                <option value="🚀">🚀 Projetos</option>
-              </optgroup>
-              <optgroup label="Estilo de Vida & Outros">
-                <option value="❤️">❤️ Saúde</option>
-                <option value="✈️">✈️ Viagens</option>
-                <option value="🏠">🏠 Home</option>
-                <option value="🎨">🎨 Design</option>
-              </optgroup>
+            <select id="new-cat-icon" style="text-align:center; font-size:1.25rem; padding:.65rem 0.25rem">
+              <option value="🔑">🔑</option>
+              <option value="🔒">🔒</option>
+              <option value="📁">📁</option>
+              <option value="📝">📝</option>
+              <option value="📱">📱</option>
+              <option value="💬">💬</option>
+              <option value="📧">📧</option>
+              <option value="🌐">🌐</option>
+              <option value="★">★</option>
+              <option value="🎵">🎵</option>
+              <option value="🎬">🎬</option>
+              <option value="🎮">🎮</option>
+              <option value="🏦">🏦</option>
+              <option value="💳">💳</option>
+              <option value="💰">💰</option>
+              <option value="🛒">🛒</option>
+              <option value="📅">📅</option>
+              <option value="📊">📊</option>
+              <option value="🛠️">🛠️</option>
+              <option value="🚀">🚀</option>
+              <option value="❤️">❤️</option>
+              <option value="✈️">✈️</option>
+              <option value="🏠">🏠</option>
             </select>
           </div>
           <div class="form-group" style="margin-bottom:0">
@@ -515,7 +499,7 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
 
 const APP = {
   name: 'PWARRUDA V2',
-  build: '15',
+  build: '16',
   get fullName(){ return `${this.name} Build ${this.build}` },
   encKey: null,
   db: null,
@@ -535,7 +519,6 @@ const DB_KEY = 'pwarruda_db';
 const SETTINGS_KEY = 'pwarruda_settings';
 const SESSION_KEY = 'pwarruda_session';
 
-// Simplificação dos nomes padrão para ajuste proporcional dos botões de filtro
 const DEFAULT_CATEGORIES = [
   { id: 'login', label: 'Login', icon: '🔑' },
   { id: 'bank', label: 'Banco', icon: '🏦' },
@@ -951,7 +934,7 @@ async function processarFormularioCategoria() {
     if (cat) {
       cat.label = nameVal;
       cat.icon = iconVal;
-      showToast('Categoria atualizada.', 'success');
+      showToast('Categoria updated.', 'success');
     }
     cancelarEdicaoCategoria();
   } else {
@@ -1076,7 +1059,7 @@ async function executarImportacaoEmLote() {
     if (!title) continue;
 
     const username = partes[1] ? partes[1].trim() : '';
-    const password = partes[2] ? partes[2] : '';
+    const password = partes[2] ? partes[2];
     const optional01 = partes[3] ? partes[3].trim() : '';
     const optional02 = partes[4] ? partes[4].trim() : '';
     const notes = partes[5] ? partes[5].trim() : '';
