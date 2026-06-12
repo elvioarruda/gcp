@@ -8,6 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="PWARRUDA V2">
 <link rel="manifest" href="manifest.json">
+<!-- Inclusão dos Ícones Oficiais do Google Material Symbols -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
 <title>PWARRUDA V2</title>
 <style>
@@ -207,6 +208,13 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
     </div>
 
     <div class="page" id="page-records">
+      <div class="section-hdr">
+        <span class="section-title">Meus Registros</span>
+        <!-- Botão de Ordenação Unificado no Estilo do App -->
+        <button class="btn btn-icon btn-secondary btn-sm" onclick="toggleSort()" title="Alternar classificação alfabética">
+          <span class="material-symbols-outlined" id="sort-icon">sort_by_alpha</span>
+        </button>
+      </div>
       <div class="filter-row" id="filter-row">
         <button class="filter-chip active" onclick="setFilter('all',this)">Todos</button>
         <button class="filter-chip" onclick="setFilter('bank',this)">🏦 Banco</button>
@@ -364,6 +372,7 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
 
 </div>
 
+<!-- Elemento global de notificações toast -->
 <div id="toast"></div>
 
 <script>
@@ -373,13 +382,14 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
 
 const APP = {
   name: 'PWARRUDA V2',
-  build: '07', // Incrementado sequencialmente para controle rigoroso de versão
+  build: '08', // Incrementado sequencialmente para controle rigoroso de versão
   get fullName(){ return `${this.name} Build ${this.build}` },
   encKey: null,
   db: null,
   currentPage: 'home',
   currentFilter: 'all',
   searchQuery: '',
+  sortOrder: 'asc', // Atributo para controle de classificação alfabética ('asc' ou 'desc')
   lockTimer: null,
   settings: {},
   fileHandle: null,
@@ -789,7 +799,7 @@ async function salvarFormulario() {
       APP.db.records[idx].password = password;
       APP.db.records[idx].type = type;
       APP.db.records[idx].updatedAt = Date.now();
-      showToast('Registro updated com sucesso!', 'success');
+      showToast('Registro atualizado com sucesso!', 'success');
     }
   } else {
     const newRecord = {
@@ -821,6 +831,17 @@ async function excluirRegistro(id) {
   }
 }
 
+// ─── CLASSIFICAÇÃO / ORDENAÇÃO ───
+function toggleSort() {
+  APP.sortOrder = (APP.sortOrder === 'asc') ? 'desc' : 'asc';
+  const icon = document.getElementById('sort-icon');
+  if (icon) {
+    icon.textContent = 'sort_by_alpha';
+  }
+  showToast(`Ordenação: ${APP.sortOrder === 'asc' ? 'A-Z' : 'Z-A'}`, 'info');
+  renderRecords();
+}
+
 // ─── RENDERIZADORES VISUAIS ───
 function renderDashboard() {
   if (!APP.db) return;
@@ -838,11 +859,20 @@ function renderDashboard() {
 function getFilteredRecords() {
   if (!APP.db) return [];
   let recs = [...APP.db.records];
+  
   if (APP.currentFilter !== 'all') recs = recs.filter(r => r.type === APP.currentFilter);
   if (APP.searchQuery) {
     const q = APP.searchQuery.toLowerCase();
     recs = recs.filter(r => (r.title||'').toLowerCase().includes(q) || (r.username||'').toLowerCase().includes(q));
   }
+
+  // Aplicação da ordenação ascendente ou descendente pelo título
+  recs.sort((a, b) => {
+    const titleA = a.title || '';
+    const titleB = b.title || '';
+    return APP.sortOrder === 'asc' ? titleA.localeCompare(titleB, 'pt-BR') : titleB.localeCompare(titleA, 'pt-BR');
+  });
+
   return recs;
 }
 
