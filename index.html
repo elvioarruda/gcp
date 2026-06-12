@@ -66,7 +66,7 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
 .btn-full{width:100%}
 .btn-sm{padding:.4rem .6rem;font-size:.8rem;border-radius:6px}
 .btn-icon{width:36px;height:36px;padding:0;border-radius:var(--radius-sm);flex-shrink:0}
-.version-badge{font-size:.75rem;color:var(--text3);letter-spacing:.1em;text-align:center;font-weight:600}
+.version-badge{font-size:.75rem;color:var(--text3);letter-spacing:.1em;text-align:center;font-weight:600;margin-top:0.5rem}
 .error-msg{color:var(--danger);font-size:.8rem;margin-top:.4rem}
 
 /* ─── TOPBAR ─── */
@@ -121,7 +121,6 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
   display: none;
 }
 
-/* Otimização visual dos botões de categoria conforme solicitação */
 .filter-chip {
   font-size: 0.75rem;
   font-weight: 600;
@@ -207,7 +206,7 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
     <div class="login-card">
       <div class="logo-area">
         <div class="logo-icon">🔐</div>
-        <div class="logo-title">PWARRUDA V2</div>
+        <div class="logo-title">PWARRUVA V2</div>
         <div class="logo-sub">Controle de Arquivos Locais com Sincronização Transparente</div>
       </div>
       <div class="form-group">
@@ -224,13 +223,13 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
       <div id="login-error" class="error-msg" style="margin-bottom:.75rem"></div>
       <button class="btn btn-primary btn-full" onclick="doLogin()">Entrar</button>
     </div>
-    <div class="version-badge" id="login-version"></div>
+    <div class="version-badge" id="login-version">PWARRUDA V2 Build 16</div>
   </div>
 
   <div id="topbar" class="hidden">
     <span class="topbar-logo">🔐 PWA</span>
     <input type="search" class="topbar-search" id="search-input" placeholder="Buscar..." oninput="doSearch(this.value)">
-    <span class="sync-status material-symbols-outlined" id="sync-indicator" title="Sincronização local activa">sync_saved_locally</span>
+    <span class="sync-status material-symbols-outlined" id="sync-indicator" title="Sincronização local ativa">sync_saved_locally</span>
     <button class="btn btn-icon btn-secondary" onclick="doLogout()" title="Sair do Aplicativo">
       <span class="material-symbols-outlined">logout</span>
     </button>
@@ -270,42 +269,53 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
       
       <div style="background:var(--surface); border:1px solid var(--border); padding:1.25rem; border-radius:var(--radius); margin-bottom:1.5rem">
         <input type="hidden" id="edit-cat-id">
-        <div style="display:grid; grid-template-columns: 80px 1fr; gap:0.75rem; margin-bottom:0.75rem">
-<div class="form-group" style="margin-bottom:0">
+        
+        <div style="display:grid; grid-template-columns: 90px 1fr; gap:0.75rem; margin-bottom:0.75rem">
+          <div class="form-group" style="margin-bottom:0; position:relative;">
             <label>Ícone</label>
-            <select id="new-cat-icon" style="text-align:center; font-size:1.3rem; padding:.5rem; display:grid; grid-template-columns: repeat(5, 1fr); gap: 5px; height: auto; max-height: 200px; overflow-y: auto;">
-              <option value="🔑">🔑</option>
-              <option value="🔒">🔒</option>
-              <option value="📁">📁</option>
-              <option value="📝">📝</option>
-              <option value="📱">📱</option>
-              <option value="💬">💬</option>
-              <option value="📧">📧</option>
-              <option value="🌐">🌐</option>
-              <option value="🔔">🔔</option>
-              <option value="🎵">🎵</option>
-              <option value="🎧">🎧</option>
-              <option value="🎬">🎬</option>
-              <option value="🎮">🎮</option>
-              <option value="🏦">🏦</option>
-              <option value="💳">💳</option>
-              <option value="💰">💰</option>
-              <option value="🛒">🛒</option>
-              <option value="🏷️">🏷️</option>
-              <option value="📅">📅</option>
-              <option value="📊">📊</option>
-              <option value="🛠️">🛠️</option>
-              <option value="🚀">🚀</option>
-              <option value="❤️">❤️</option>
-              <option value="✈️">✈️</option>
-              <option value="🏠">🏠</option>
-              <option value="🎨">🎨</option>
-            </select>
-          </div>          <div class="form-group" style="margin-bottom:0">
+            <button type="button" id="btn-icon-selector" onclick="toggleIconMatrix(event)" style="width:100%; height:44px; background:var(--bg3); border:1px solid var(--border); border-radius:var(--radius-sm); color:var(--text); font-size:1.4rem; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.2s">📁</button>
+            
+            <div id="icon-matrix-container" class="hidden" style="position:absolute; top:70px; left:0; z-index:1000; background:var(--surface2); border:1px solid var(--primary); border-radius:var(--radius-sm); padding:8px; width:240px; box-shadow:var(--shadow), var(--glow)">
+              <div style="display:grid; grid-template-columns: repeat(5, 1fr); gap:6px; text-align:center;">
+                <div style="font-size:1.3rem; padding:6px; cursor:pointer; border-radius:4px; transition:background 0.1s" onclick="selectMatrixIcon('🔑')">🔑</div>
+                <div style="font-size:1.3rem; padding:6px; cursor:pointer; border-radius:4px; transition:background 0.1s" onclick="selectMatrixIcon('🔒')">🔒</div>
+                <div style="font-size:1.3rem; padding:6px; cursor:pointer; border-radius:4px; transition:background 0.1s" onclick="selectMatrixIcon('📁')">📁</div>
+                <div style="font-size:1.3rem; padding:6px; cursor:pointer; border-radius:4px; transition:background 0.1s" onclick="selectMatrixIcon('📝')">📝</div>
+                <div style="font-size:1.3rem; padding:6px; cursor:pointer; border-radius:4px; transition:background 0.1s" onclick="selectMatrixIcon('📱')">📱</div>
+                <div style="font-size:1.3rem; padding:6px; cursor:pointer; border-radius:4px; transition:background 0.1s" onclick="selectMatrixIcon('💬')">💬</div>
+                <div style="font-size:1.3rem; padding:6px; cursor:pointer; border-radius:4px; transition:background 0.1s" onclick="selectMatrixIcon('📧')">📧</div>
+                <div style="font-size:1.3rem; padding:6px; cursor:pointer; border-radius:4px; transition:background 0.1s" onclick="selectMatrixIcon('🌐')">🌐</div>
+                <div style="font-size:1.3rem; padding:6px; cursor:pointer; border-radius:4px; transition:background 0.1s" onclick="selectMatrixIcon('🔔')">🔔</div>
+                <div style="font-size:1.3rem; padding:6px; cursor:pointer; border-radius:4px; transition:background 0.1s" onclick="selectMatrixIcon('🎵')">🎵</div>
+                <div style="font-size:1.3rem; padding:6px; cursor:pointer; border-radius:4px; transition:background 0.1s" onclick="selectMatrixIcon('🎧')">🎧</div>
+                <div style="font-size:1.3rem; padding:6px; cursor:pointer; border-radius:4px; transition:background 0.1s" onclick="selectMatrixIcon('🎬')">🎬</div>
+                <div style="font-size:1.3rem; padding:6px; cursor:pointer; border-radius:4px; transition:background 0.1s" onclick="selectMatrixIcon('🎮')">🎮</div>
+                <div style="font-size:1.3rem; padding:6px; cursor:pointer; border-radius:4px; transition:background 0.1s" onclick="selectMatrixIcon('🏦')">🏦</div>
+                <div style="font-size:1.3rem; padding:6px; cursor:pointer; border-radius:4px; transition:background 0.1s" onclick="selectMatrixIcon('💳')">💳</div>
+                <div style="font-size:1.3rem; padding:6px; cursor:pointer; border-radius:4px; transition:background 0.1s" onclick="selectMatrixIcon('💰')">💰</div>
+                <div style="font-size:1.3rem; padding:6px; cursor:pointer; border-radius:4px; transition:background 0.1s" onclick="selectMatrixIcon('🛒')">🛒</div>
+                <div style="font-size:1.3rem; padding:6px; cursor:pointer; border-radius:4px; transition:background 0.1s" onclick="selectMatrixIcon('🏷️')">🏷️</div>
+                <div style="font-size:1.3rem; padding:6px; cursor:pointer; border-radius:4px; transition:background 0.1s" onclick="selectMatrixIcon('📅')">📅</div>
+                <div style="font-size:1.3rem; padding:6px; cursor:pointer; border-radius:4px; transition:background 0.1s" onclick="selectMatrixIcon('📊')">📊</div>
+                <div style="font-size:1.3rem; padding:6px; cursor:pointer; border-radius:4px; transition:background 0.1s" onclick="selectMatrixIcon('🛠️')">🛠️</div>
+                <div style="font-size:1.3rem; padding:6px; cursor:pointer; border-radius:4px; transition:background 0.1s" onclick="selectMatrixIcon('🚀')">🚀</div>
+                <div style="font-size:1.3rem; padding:6px; cursor:pointer; border-radius:4px; transition:background 0.1s" onclick="selectMatrixIcon('❤️')">❤️</div>
+                <div style="font-size:1.3rem; padding:6px; cursor:pointer; border-radius:4px; transition:background 0.1s" onclick="selectMatrixIcon('✈️')">✈️</div>
+                <div style="font-size:1.3rem; padding:6px; cursor:pointer; border-radius:4px; transition:background 0.1s" onclick="selectMatrixIcon('🏠')">🏠</div>
+                <div style="font-size:1.3rem; padding:6px; cursor:pointer; border-radius:4px; transition:background 0.1s" onclick="selectMatrixIcon('🎨')">🎨</div>
+                <div style="font-size:1.3rem; padding:6px; cursor:pointer; border-radius:4px; transition:background 0.1s" onclick="selectMatrixIcon('💼')">💼</div>
+                <div style="font-size:1.3rem; padding:6px; cursor:pointer; border-radius:4px; transition:background 0.1s" onclick="selectMatrixIcon('⚙️')">⚙️</div>
+                <div style="font-size:1.3rem; padding:6px; cursor:pointer; border-radius:4px; transition:background 0.1s" onclick="selectMatrixIcon('💻')">💻</div>
+                <div style="font-size:1.3rem; padding:6px; cursor:pointer; border-radius:4px; transition:background 0.1s" onclick="selectMatrixIcon('📌')">📌</div>
+              </div>
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom:0">
             <label>Nome da Categoria</label>
             <input type="text" id="new-cat-name" placeholder="Ex: Trabalho, Compras">
           </div>
         </div>
+
         <div style="display:flex; gap:0.5rem; margin-top:1rem">
           <button class="btn btn-primary" style="flex:2" id="btn-cat-save" onclick="processarFormularioCategoria()">✨ Adicionar Categoria</button>
           <button class="btn btn-secondary hidden" style="flex:1" id="btn-cat-cancel" onclick="cancelarEdicaoCategoria()">Cancelar</button>
@@ -412,7 +422,7 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
       <div class="settings-section">
         <div class="settings-title">Informações</div>
         <div class="settings-row">
-          <div><div class="settings-label">Versão</div><div class="settings-sublabel" id="settings-version"></div></div>
+          <div><div class="settings-label">Versão</div><div class="settings-sublabel" id="settings-version">PWARRUDA V2 Build 16</div></div>
         </div>
       </div>
 
@@ -502,8 +512,7 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
 
 const APP = {
   name: 'PWARRUDA V2',
-  build: '20',
-  get fullName(){ return `${this.name} Build ${this.build}` },
+  build: '16',
   encKey: null,
   db: null,
   currentPage: 'home',
@@ -522,21 +531,12 @@ const DB_KEY = 'pwarruda_db';
 const SETTINGS_KEY = 'pwarruda_settings';
 const SESSION_KEY = 'pwarruda_session';
 
-// Simplificação dos nomes padrão para ajuste proporcional dos botões de filtro
 const DEFAULT_CATEGORIES = [
   { id: 'login', label: 'Login', icon: '🔑' },
   { id: 'bank', label: 'Banco', icon: '🏦' },
   { id: 'site', label: 'Site', icon: '🌐' },
   { id: 'other', label: 'Outro', icon: '📁' }
 ];
-
-document.addEventListener("DOMContentLoaded", function() {
-  updateVersionDisplay();
-});
-
-window.onload = function() {
-  updateVersionDisplay();
-};
 
 function updateVersionDisplay() {
   const v = `${APP.name} Build ${APP.build}`;
@@ -546,6 +546,29 @@ function updateVersionDisplay() {
   if (loginBadge) loginBadge.textContent = v;
   if (settingsBadge) settingsBadge.textContent = v;
 }
+
+// ─── COMPONENTE SELETOR DE MATRIZ DE ÍCONES ───
+function toggleIconMatrix(event) {
+  if (event) event.stopPropagation();
+  const matrix = document.getElementById('icon-matrix-container');
+  if (matrix) matrix.classList.toggle('hidden');
+}
+
+function selectMatrixIcon(icon) {
+  const btn = document.getElementById('btn-icon-selector');
+  if (btn) btn.textContent = icon;
+  const matrix = document.getElementById('icon-matrix-container');
+  if (matrix) matrix.classList.add('hidden');
+}
+
+// Fechar a matriz se clicar fora dela
+document.addEventListener('click', function(e) {
+  const matrix = document.getElementById('icon-matrix-container');
+  const btn = document.getElementById('btn-icon-selector');
+  if (matrix && !matrix.classList.contains('hidden') && e.target !== btn && !matrix.contains(e.target)) {
+    matrix.classList.add('hidden');
+  }
+});
 
 // ─── CRYPTO ENGINE ───
 const Crypto = {
@@ -627,8 +650,10 @@ function saveSetting(k, v) { Store.saveSetting(k, v); }
 async function verificarPermissaoArquivo(fileHandle, readWrite) {
   const options = {};
   if (readWrite) options.mode = 'readwrite';
-  if ((await fileHandle.queryPermission(options)) === 'granted') return true;
-  if ((await fileHandle.requestPermission(options)) === 'granted') return true;
+  try {
+    if ((await fileHandle.queryPermission(options)) === 'granted') return true;
+    if ((await fileHandle.requestPermission(options)) === 'granted') return true;
+  } catch(e) { console.warn("File System Access API permission prompt skipped."); }
   return false;
 }
 
@@ -727,32 +752,39 @@ function atualizarUIArquivo() {
 // ─── INDEXEDDB REFERÊNCIA ARQUIVO ───
 function salvarReferenciaArquivo(handle) {
   return new Promise((resolve) => {
-    const request = indexedDB.open("pwarruda_local_storage", 1);
-    request.onupgradeneeded = (e) => e.target.result.createObjectStore("handles");
-    request.onsuccess = (e) => {
-      const tx = e.target.result.transaction("handles", "readwrite");
-      tx.objectStore("handles").put(handle, "ultimo_handle");
-      tx.oncomplete = () => resolve();
-    };
+    try {
+      const request = indexedDB.open("pwarruda_local_storage", 1);
+      request.onupgradeneeded = (e) => e.target.result.createObjectStore("handles");
+      request.onsuccess = (e) => {
+        const tx = e.target.result.transaction("handles", "readwrite");
+        tx.objectStore("handles").put(handle, "ultimo_handle");
+        tx.oncomplete = () => resolve();
+      };
+      request.onerror = () => resolve();
+    } catch(err) { resolve(); }
   });
 }
 
 function carregarReferenciaArquivoSalva() {
   return new Promise((resolve) => {
-    const request = indexedDB.open("pwarruda_local_storage", 1);
-    request.onupgradeneeded = (e) => e.target.result.createObjectStore("handles");
-    request.onsuccess = (e) => {
-      const tx = e.target.result.transaction("handles", "readonly");
-      const getReq = tx.objectStore("handles").get("ultimo_handle");
-      getReq.onsuccess = () => {
-        if (getReq.result) {
-          APP.fileHandle = getReq.result;
-          APP.fileName = getReq.result.name;
-          atualizarUIArquivo();
-        }
-        resolve();
+    try {
+      const request = indexedDB.open("pwarruda_local_storage", 1);
+      request.onupgradeneeded = (e) => e.target.result.createObjectStore("handles");
+      request.onsuccess = (e) => {
+        const tx = e.target.result.transaction("handles", "readonly");
+        const getReq = tx.objectStore("handles").get("ultimo_handle");
+        getReq.onsuccess = () => {
+          if (getReq.result) {
+            APP.fileHandle = getReq.result;
+            APP.fileName = getReq.result.name;
+            atualizarUIArquivo();
+          }
+          resolve();
+        };
+        getReq.onerror = () => resolve();
       };
-    };
+      request.onerror = () => resolve();
+    } catch(err) { resolve(); }
   });
 }
 
@@ -799,7 +831,7 @@ async function alterarSenhaMestre() {
     document.getElementById('change-pwd-new').value = '';
     document.getElementById('change-pwd-confirm').value = '';
 
-    showToast('Senha master e arquivos updated.', 'success');
+    showToast('Senha master e arquivos atualizados.', 'success');
   } catch (err) {
     console.error(err);
     showToast('Erro ao processar a alteração de senha.', 'error');
@@ -811,29 +843,39 @@ async function doLogin() {
   const user = document.getElementById('login-user').value.trim();
   const pass = document.getElementById('login-pass').value;
   const errEl = document.getElementById('login-error');
-  errEl.textContent = '';
+  if (errEl) errEl.textContent = '';
 
-  let storedUser = localStorage.getItem(ADMIN_USER_KEY);
-  let storedHash = localStorage.getItem(ADMIN_PASS_HASH_KEY);
-
-  if (!storedUser || !storedHash) {
-    storedUser = user;
-    storedHash = await Crypto.hashPassword(pass);
-    localStorage.setItem(ADMIN_USER_KEY, storedUser);
-    localStorage.setItem(ADMIN_PASS_HASH_KEY, storedHash);
+  if (!user || !pass) {
+    if (errEl) errEl.textContent = 'Informe o usuário e a senha.';
+    return;
   }
 
-  if (user !== storedUser) { errEl.textContent = 'Usuário inválido.'; return; }
+  try {
+    let storedUser = localStorage.getItem(ADMIN_USER_KEY);
+    let storedHash = localStorage.getItem(ADMIN_PASS_HASH_KEY);
 
-  const inputHash = await Crypto.hashPassword(pass);
-  if (inputHash !== storedHash) { errEl.textContent = 'Senha incorreta.'; return; }
+    if (!storedUser || !storedHash) {
+      storedUser = user;
+      storedHash = await Crypto.hashPassword(pass);
+      localStorage.setItem(ADMIN_USER_KEY, storedUser);
+      localStorage.setItem(ADMIN_PASS_HASH_KEY, storedHash);
+    }
 
-  APP.encKey = await Crypto.deriveKey(pass, 'pwarruda_aes256_' + user);
-  Store.loadSettings();
-  await Store.loadDB();
+    if (user !== storedUser) { if (errEl) errEl.textContent = 'Usuário inválido.'; return; }
 
-  sessionStorage.setItem(SESSION_KEY, JSON.stringify({ user, ts: Date.now() }));
-  await initApp();
+    const inputHash = await Crypto.hashPassword(pass);
+    if (inputHash !== storedHash) { if (errEl) errEl.textContent = 'Senha incorreta.'; return; }
+
+    APP.encKey = await Crypto.deriveKey(pass, 'pwarruda_aes256_' + user);
+    Store.loadSettings();
+    await Store.loadDB();
+
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify({ user, ts: Date.now() }));
+    await initApp();
+  } catch(e) {
+    console.error(e);
+    if (errEl) errEl.textContent = 'Erro no processamento criptográfico.';
+  }
 }
 
 async function doLogout() {
@@ -920,12 +962,12 @@ function renderCategoryManager() {
 
 async function processarFormularioCategoria() {
   const inputName = document.getElementById('new-cat-name');
-  const selectIcon = document.getElementById('new-cat-icon');
+  const btnIcon = document.getElementById('btn-icon-selector');
   const editIdInput = document.getElementById('edit-cat-id');
   
-  if (!inputName || !selectIcon) return;
+  if (!inputName || !btnIcon) return;
   const nameVal = inputName.value.trim();
-  const iconVal = selectIcon.value;
+  const iconVal = btnIcon.textContent;
   const editId = editIdInput.value;
 
   if (!nameVal) {
@@ -945,7 +987,7 @@ async function processarFormularioCategoria() {
     const id = 'cat_' + Date.now() + Math.random().toString(36).substring(2, 5);
     APP.db.categories.push({ id, label: nameVal, icon: iconVal });
     inputName.value = '';
-    selectIcon.selectedIndex = 0;
+    btnIcon.textContent = '📁';
     showToast('Categoria adicionada com sucesso!', 'success');
   }
   
@@ -963,7 +1005,7 @@ function prepararEdicaoCategoria(id) {
   document.getElementById('category-manager-title').textContent = 'Editar Categoria';
   document.getElementById('edit-cat-id').value = cat.id;
   document.getElementById('new-cat-name').value = cat.label;
-  document.getElementById('new-cat-icon').value = cat.icon || '📁';
+  document.getElementById('btn-icon-selector').textContent = cat.icon || '📁';
   
   document.getElementById('btn-cat-save').textContent = '💾 Salvar Alterações';
   document.getElementById('btn-cat-cancel').classList.remove('hidden');
@@ -974,7 +1016,7 @@ function cancelarEdicaoCategoria() {
   document.getElementById('category-manager-title').textContent = 'Gerenciar Categorias';
   document.getElementById('edit-cat-id').value = '';
   document.getElementById('new-cat-name').value = '';
-  document.getElementById('new-cat-icon').selectedIndex = 0;
+  document.getElementById('btn-icon-selector').textContent = '📁';
   
   document.getElementById('btn-cat-save').textContent = '✨ Adicionar Categoria';
   document.getElementById('btn-cat-cancel').classList.add('hidden');
@@ -1043,7 +1085,7 @@ function toggleBatchMode(isBatch) {
   }
 }
 
-async function executarImportacaoEmLote() {
+async function ejecutarImportacaoEmLote() {
   const textInput = document.getElementById('batch-text-input').value;
   if (!textInput.trim()) {
     showToast('Insira dados de texto válidos para processamento.', 'error');
@@ -1063,7 +1105,7 @@ async function executarImportacaoEmLote() {
     if (!title) continue;
 
     const username = partes[1] ? partes[1].trim() : '';
-    const password = partes[2] ? partes[2] : '';
+    const password = partes[2] ? partes[2];
     const optional01 = partes[3] ? partes[3].trim() : '';
     const optional02 = partes[4] ? partes[4].trim() : '';
     const notes = partes[5] ? partes[5].trim() : '';
@@ -1424,6 +1466,29 @@ function showToast(msg, type='info') {
   el.className = `toast-${type} show`;
   toastTimer = setTimeout(() => el.classList.remove('show'), 2800);
 }
+
+// ─── AUTO RUNS ───
+window.onload = async () => {
+  updateVersionDisplay();
+  const sessionRaw = sessionStorage.getItem(SESSION_KEY);
+  if (sessionRaw) {
+    try {
+      const session = JSON.parse(sessionRaw);
+      if (session && session.user && (Date.now() - session.ts < 2 * 60 * 60 * 1000)) {
+        let storedUser = localStorage.getItem(ADMIN_USER_KEY);
+        if (session.user === storedUser) {
+          showToast('Sessão restaurada automaticamente.', 'info');
+          
+          document.getElementById('login-screen').classList.add('hidden');
+          document.getElementById('topbar').classList.add('hidden');
+          document.getElementById('main').classList.add('hidden');
+          document.getElementById('bottom-nav').classList.add('hidden');
+          return;
+        }
+      }
+    } catch(e) {}
+  }
+};
 </script>
 </body>
 </html>
