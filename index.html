@@ -271,50 +271,37 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
       <div style="background:var(--surface); border:1px solid var(--border); padding:1.25rem; border-radius:var(--radius); margin-bottom:1.5rem">
         <input type="hidden" id="edit-cat-id">
         <div style="display:grid; grid-template-columns: 80px 1fr; gap:0.75rem; margin-bottom:0.75rem">
-          <div class="form-group" style="margin-bottom:0">
+<div class="form-group" style="margin-bottom:0">
             <label>Ícone</label>
-            <select id="new-cat-icon" style="text-align:center; font-size:1.1rem; padding:.65rem 0.5rem">
-              <optgroup label="Segurança & Padrão">
-                <option value="🔑">🔑</option>
-                <option value="🔒">🔒</option>
-                <option value="📁">📁</option>
-                <option value="📝">📝</option>
-              </optgroup>
-              <optgroup label="Mídias Sociais & Comunicação">
-                <option value="📱">📱</option>
-                <option value="💬">💬</option>
-                <option value="📧">📧</option>
-                <option value="🌐">🌐</option>
-                <option value="🔔">🔔</option>
-              </optgroup>
-              <optgroup label="Música & Entretenimento">
-                <option value="🎵">🎵</option>
-                <option value="🎧">🎧</option>
-                <option value="🎬">🎬</option>
-                <option value="🎮">🎮</option>
-              </optgroup>
-              <optgroup label="Finanças & Compras">
-                <option value="🏦">🏦</option>
-                <option value="💳">💳</option>
-                <option value="💰">💰</option>
-                <option value="🛒">🛒</option>
-                <option value="🏷️">🏷️</option>
-              </optgroup>
-              <optgroup label="Produtividade & Trabalho">
-                <option value="📅">📅</option>
-                <option value="📊">📊</option>
-                <option value="🛠️">🛠️</option>
-                <option value="🚀">🚀</option>
-              </optgroup>
-              <optgroup label="Estilo de Vida & Outros">
-                <option value="❤️">❤️</option>
-                <option value="✈️">✈️</option>
-                <option value="🏠">🏠</option>
-                <option value="🎨">🎨</option>
-              </optgroup>
+            <select id="new-cat-icon" style="text-align:center; font-size:1.3rem; padding:.5rem; display:grid; grid-template-columns: repeat(5, 1fr); gap: 5px; height: auto; max-height: 200px; overflow-y: auto;">
+              <option value="🔑">🔑</option>
+              <option value="🔒">🔒</option>
+              <option value="📁">📁</option>
+              <option value="📝">📝</option>
+              <option value="📱">📱</option>
+              <option value="💬">💬</option>
+              <option value="📧">📧</option>
+              <option value="🌐">🌐</option>
+              <option value="🔔">🔔</option>
+              <option value="🎵">🎵</option>
+              <option value="🎧">🎧</option>
+              <option value="🎬">🎬</option>
+              <option value="🎮">🎮</option>
+              <option value="🏦">🏦</option>
+              <option value="💳">💳</option>
+              <option value="💰">💰</option>
+              <option value="🛒">🛒</option>
+              <option value="🏷️">🏷️</option>
+              <option value="📅">📅</option>
+              <option value="📊">📊</option>
+              <option value="🛠️">🛠️</option>
+              <option value="🚀">🚀</option>
+              <option value="❤️">❤️</option>
+              <option value="✈️">✈️</option>
+              <option value="🏠">🏠</option>
+              <option value="🎨">🎨</option>
             </select>
-          </div>
-          <div class="form-group" style="margin-bottom:0">
+          </div>          <div class="form-group" style="margin-bottom:0">
             <label>Nome da Categoria</label>
             <input type="text" id="new-cat-name" placeholder="Ex: Trabalho, Compras">
           </div>
@@ -515,7 +502,7 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
 
 const APP = {
   name: 'PWARRUDA V2',
-  build: '15',
+  build: '20',
   get fullName(){ return `${this.name} Build ${this.build}` },
   encKey: null,
   db: null,
