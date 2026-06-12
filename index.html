@@ -8,7 +8,6 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="PWARRUDA V2">
 <link rel="manifest" href="manifest.json">
-<!-- Inclusão dos Ícones Oficiais do Google Material Symbols -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
 <title>PWARRUDA V2</title>
 <style>
@@ -37,7 +36,6 @@
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);overflow:hidden}
 
-/* Uso de dvh (Dynamic Viewport Height) para evitar que elementos sejam empurrados em navegadores móveis */
 #app{height: 100dvh; display:flex;flex-direction:column;position:relative}
 .hidden{display:none!important}
 
@@ -52,7 +50,11 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
 .form-group label{display:block;font-size:.8rem;color:var(--text2);margin-bottom:.5rem;font-weight:500;letter-spacing:.05em;text-transform:uppercase}
 .form-group input,.form-group select,.form-group textarea{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.75rem 1rem;color:var(--text);font-size:.95rem;outline:none;transition:all .2s}
 .form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(79,70,229,.15)}
-.form-group textarea{resize:vertical;min-height:80px}
+.form-group textarea{resize:vertical;min-height:90px}
+.form-group-inline{display:flex;align-items:center;gap:.5rem;margin-bottom:1.25rem}
+.form-group-inline input[type="checkbox"]{width:18px;height:18px;accent-color:var(--primary);cursor:pointer}
+.form-group-inline label{font-size:.85rem;color:var(--text2);cursor:pointer;user-select:none}
+
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;padding:.75rem 1.5rem;border-radius:var(--radius-sm);border:none;cursor:pointer;font-size:.9rem;font-weight:600;transition:all .2s;user-select:none}
 .btn-primary{background:var(--primary);color:#fff}
 .btn-primary:hover{background:var(--primary-dark);box-shadow:var(--glow)}
@@ -95,6 +97,9 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
 .record-info{flex:1;min-width:0}
 .record-title{font-weight:600;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .record-sub{font-size:.75rem;color:var(--text2);margin-top:.2rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.record-optional-block{font-size:.7rem;color:var(--text3);margin-top:.2rem;display:flex;gap:.5rem;flex-wrap:wrap}
+.record-optional-block span{background:rgba(255,255,255,0.04);padding:1px 6px;border-radius:4px}
+.record-notes{font-size:.75rem;color:var(--text3);margin-top:.3rem;background:rgba(0,0,0,0.15);padding:.4rem;border-radius:4px;word-break:break-word;white-space:pre-wrap}
 .record-meta{font-size:.65rem;color:var(--text3);margin-top:.4rem;display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
 .record-actions{display:flex;gap:.35rem;flex-shrink:0}
 .tag{display:inline-block;padding:.2rem .5rem;border-radius:4px;font-size:.65rem;font-weight:600;background:rgba(79,70,229,.15);color:var(--primary-light);white-space:nowrap}
@@ -120,10 +125,19 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
 .toggle input:checked + .toggle-slider{background:var(--primary)}
 .toggle input:checked + .toggle-slider:before{transform:translateX(20px)}
 
+/* ─── CATEGORIES MANAGEMENT ─── */
+.category-manager-item{display:flex;align-items:center;justify-content:space-between;background:var(--bg3);padding:.5rem .75rem;border-radius:var(--radius-sm);margin-bottom:.5rem;border:1px solid rgba(255,255,255,0.05)}
+.category-manager-name{font-size:.85rem;display:flex;align-items:center;gap:.5rem}
+
 /* ─── PASSWORD FIELD ─── */
 .pwd-field{position:relative}
 .pwd-field input{padding-right:2.5rem}
 .pwd-toggle{position:absolute;right:.75rem;top:50%;transform:translateY(-50%);cursor:pointer;color:var(--text3);background:none;border:none;font-size:1rem;padding:.25rem}
+
+/* ─── BATCH IMPORT CONTAINER ─── */
+.batch-container{background:var(--bg2);border:1px dashed var(--border);border-radius:var(--radius-sm);padding:1rem;margin-bottom:1.25rem}
+.batch-instructions{font-size:.75rem;color:var(--text2);margin-bottom:.75rem;line-height:1.4}
+.batch-instructions code{background:var(--bg3);padding:2px 4px;border-radius:4px;color:var(--primary-light);font-family:monospace}
 
 /* ─── TOAST ─── */
 #toast{position:fixed;bottom:calc(80px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%) translateY(20px);background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.65rem 1.25rem;font-size:.85rem;z-index:9999;opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap;max-width:90vw}
@@ -185,10 +199,7 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
   <div id="topbar" class="hidden">
     <span class="topbar-logo">🔐 PWA</span>
     <input type="search" class="topbar-search" id="search-input" placeholder="Buscar..." oninput="doSearch(this.value)">
-    <span class="sync-status material-symbols-outlined" id="sync-indicator" title="Sincronização local activa">sync_saved_locally</span>
-    <button class="btn btn-icon btn-secondary" onclick="showPage('settings')" title="Configurações">
-      <span class="material-symbols-outlined">settings</span>
-    </button>
+    <span class="sync-status material-symbols-outlined" id="sync-indicator" title="Sincronização local ativa">sync_saved_locally</span>
     <button class="btn btn-icon btn-secondary" onclick="doLogout()" title="Sair do Aplicativo">
       <span class="material-symbols-outlined">logout</span>
     </button>
@@ -210,18 +221,11 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
     <div class="page" id="page-records">
       <div class="section-hdr">
         <span class="section-title">Meus Registros</span>
-        <!-- Botão de Ordenação Unificado no Estilo do App -->
         <button class="btn btn-icon btn-secondary btn-sm" onclick="toggleSort()" title="Alternar classificação alfabética">
           <span class="material-symbols-outlined" id="sort-icon">sort_by_alpha</span>
         </button>
       </div>
-      <div class="filter-row" id="filter-row">
-        <button class="filter-chip active" onclick="setFilter('all',this)">Todos</button>
-        <button class="filter-chip" onclick="setFilter('bank',this)">🏦 Banco</button>
-        <button class="filter-chip" onclick="setFilter('site',this)">🌐 Site</button>
-        <button class="filter-chip" onclick="setFilter('login',this)">🔑 Login</button>
-        <button class="filter-chip" onclick="setFilter('other',this)">📁 Outros</button>
-      </div>
+      <div class="filter-row" id="filter-row"></div>
       <div id="records-list"></div>
     </div>
 
@@ -229,37 +233,67 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
       <div class="section-hdr"><span class="section-title" id="form-page-title">Novo Registro</span></div>
       <input type="hidden" id="form-record-id">
       
-      <div class="form-group">
-        <label>Título do Registro</label>
-        <input type="text" id="form-title" placeholder="Ex: Banco do Brasil, Netflix, E-mail">
-      </div>
-      
-      <div class="form-group">
-        <label>Nome de Usuário / Login</label>
-        <input type="text" id="form-username" placeholder="Usuário, e-mail ou documento">
-      </div>
-      
-      <div class="form-group">
-        <label>Senha</label>
-        <div class="pwd-field">
-          <input type="password" id="form-password" placeholder="Digite a senha">
-          <button class="pwd-toggle" onclick="togglePwd('form-password',this)">👁</button>
+      <div id="form-fields-standard">
+        <div class="form-group">
+          <label>Título do Registro</label>
+          <input type="text" id="form-title" placeholder="Ex: Banco do Brasil, Netflix, E-mail">
+        </div>
+        
+        <div class="form-group">
+          <label>Nome de Usuário / Login</label>
+          <input type="text" id="form-username" placeholder="Usuário, e-mail ou documento">
+        </div>
+        
+        <div class="form-group">
+          <label>Senha</label>
+          <div class="pwd-field">
+            <input type="password" id="form-password" placeholder="Digite a senha">
+            <button class="pwd-toggle" onclick="togglePwd('form-password',this)">👁</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Opcional 01</label>
+          <input type="text" id="form-optional01" placeholder="Informação opcional complementar 1">
+        </div>
+
+        <div class="form-group">
+          <label>Opcional 02</label>
+          <input type="text" id="form-optional02" placeholder="Informação opcional complementar 2">
+        </div>
+        
+        <div class="form-group">
+          <label>Categoria</label>
+          <select id="form-type"></select>
+        </div>
+
+        <div class="form-group">
+          <label>Observações</label>
+          <textarea id="form-notes" placeholder="Insira frases, anotações detalhadas ou informações adicionais de suporte..."></textarea>
         </div>
       </div>
-      
-      <div class="form-group">
-        <label>Categoria</label>
-        <select id="form-type">
-          <option value="login">🔑 Login</option>
-          <option value="bank">🏦 Banco</option>
-          <option value="site">🌐 Site</option>
-          <option value="other">📁 Outro</option>
-        </select>
+
+      <div class="form-group-inline" id="batch-toggle-container">
+        <input type="checkbox" id="chk-batch-mode" onchange="toggleBatchMode(this.checked)">
+        <label for="chk-batch-mode">Ativar importação em lote de registros</label>
+      </div>
+
+      <div id="batch-import-block" class="batch-container hidden">
+        <div class="batch-instructions">
+          Insira um registro por linha. Cada campo deve ser obrigatoriamente delimitado por ponto e vírgula (<code>;</code>) seguindo estritamente a estrutura:<br>
+          <code>&lt;Título&gt;;&lt;Usuário&gt;;&lt;Senha&gt;;&lt;Opcional 01&gt;;&lt;Opcional 02&gt;;&lt;Observações&gt;</code><br>
+          <em>*Campos sem informação podem ser deixados em branco entre os delimitadores.</em>
+        </div>
+        <div class="form-group">
+          <label>Lista de Registros para Importação</label>
+          <textarea id="batch-text-input" style="min-height: 150px;" placeholder="Exemplo:&#10;Servidor VPS;root;Senha@123;IP_Do_Servidor;Porta_SSH;Frase de recuperação do token&#10;E-mail Secundário;contato@dominio.com;Acesso#2026;;;Criado para testes internos"></textarea>
+        </div>
+        <button class="btn btn-success btn-full" onclick="executarImportacaoEmLote()">Processar e Importar Lista</button>
       </div>
       
       <div style="display:flex;gap:.75rem;margin-top:1.5rem">
-        <button class="btn btn-secondary" style="flex:1" onclick="cancelarFormulario()">Cancelar</button>
-        <button class="btn btn-primary" style="flex:1" onclick="salvarFormulario()">Salvar Registro</button>
+        <button class="btn btn-secondary" style="flex:1" id="btn-form-cancel" onclick="cancelarFormulario()">Cancelar</button>
+        <button class="btn btn-primary" style="flex:1" id="btn-form-save" onclick="salvarFormulario()">Salvar Registro</button>
       </div>
     </div>
 
@@ -288,6 +322,15 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
     </div>
 
     <div class="page" id="page-settings">
+      <div class="settings-section">
+        <div class="settings-title">Gerenciamento de Categorias</div>
+        <div style="display:flex;gap:0.5rem;margin-bottom:1rem">
+          <input type="text" id="new-cat-name" placeholder="Ex: 🚀 Trabalho, 🎮 Jogos" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);border-radius:var(--radius-sm);padding:.5rem .75rem;font-size:.85rem;flex:1;outline:none">
+          <button class="btn btn-primary btn-sm" onclick="adicionarCategoriaCustomizada()">Adicionar</button>
+        </div>
+        <div id="categories-manager-list"></div>
+      </div>
+
       <div class="settings-section">
         <div class="settings-title">Informações</div>
         <div class="settings-row">
@@ -366,13 +409,12 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
       <span class="nav-icon material-symbols-outlined">database</span><span>Arquivo</span>
     </button>
     <button class="nav-item" id="nav-settings" onclick="showPage('settings')">
-      <span class="nav-icon material-symbols-outlined">settings</span><span>Opções</span>
+      <span class="nav-icon material-symbols-outlined">settings</span><span>Configurações</span>
     </button>
   </div>
 
 </div>
 
-<!-- Elemento global de notificações toast -->
 <div id="toast"></div>
 
 <script>
@@ -382,14 +424,14 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
 
 const APP = {
   name: 'PWARRUDA V2',
-  build: '08', // Revertido para o identificador estável anterior
+  build: '10',
   get fullName(){ return `${this.name} Build ${this.build}` },
   encKey: null,
   db: null,
   currentPage: 'home',
   currentFilter: 'all',
   searchQuery: '',
-  sortOrder: 'asc', // Atributo para controle de classificação alfabética ('asc' ou 'desc')
+  sortOrder: 'asc',
   lockTimer: null,
   settings: {},
   fileHandle: null,
@@ -401,6 +443,13 @@ const ADMIN_PASS_HASH_KEY = 'pwarruda_admin_hash';
 const DB_KEY = 'pwarruda_db';
 const SETTINGS_KEY = 'pwarruda_settings';
 const SESSION_KEY = 'pwarruda_session';
+
+const DEFAULT_CATEGORIES = [
+  { id: 'login', label: '🔑 Login' },
+  { id: 'bank', label: '🏦 Banco' },
+  { id: 'site', label: '🌐 Site' },
+  { id: 'other', label: '📁 Outro' }
+];
 
 document.addEventListener("DOMContentLoaded", function() {
   updateVersionDisplay();
@@ -452,7 +501,7 @@ const Crypto = {
 };
 
 function newDB() {
-  return { version: 1, records: [], categories: [], backups: [], lastSync: null, lastModified: Date.now() };
+  return { version: 1, records: [], categories: [...DEFAULT_CATEGORIES], backups: [], lastSync: null, lastModified: Date.now() };
 }
 
 // ─── PERSISTÊNCIA ───
@@ -474,6 +523,9 @@ const Store = {
     try {
       APP.db = await Crypto.decrypt(raw, APP.encKey);
       if (!APP.db.records) APP.db.records = [];
+      if (!APP.db.categories || APP.db.categories.length === 0) {
+        APP.db.categories = [...DEFAULT_CATEGORIES];
+      }
     } catch(e) { APP.db = newDB(); }
   },
   saveSetting(k, v) {
@@ -549,8 +601,12 @@ async function lerDadosDoArquivoVinculado() {
     const bancoDescriptografado = await Crypto.decrypt(textoCriptografado, APP.encKey);
     if (bancoDescriptografado && bancoDescriptografado.records) {
       APP.db = bancoDescriptografado;
+      if (!APP.db.categories || APP.db.categories.length === 0) {
+        APP.db.categories = [...DEFAULT_CATEGORIES];
+      }
       localStorage.setItem(DB_KEY, textoCriptografado);
       showToast('Dados sincronizados com o arquivo local!', 'success');
+      dinamizarElementosUI();
       refreshCurrentPage();
     }
   } catch (err) {
@@ -684,7 +740,6 @@ async function doLogin() {
     localStorage.setItem(ADMIN_PASS_HASH_KEY, storedHash);
   }
 
-  // Validação estrita padrão (Case-Sensitive) restaurada
   if (user !== storedUser) { errEl.textContent = 'Usuário inválido.'; return; }
 
   const inputHash = await Crypto.hashPassword(pass);
@@ -723,15 +778,120 @@ async function initApp() {
   document.getElementById('bottom-nav').classList.remove('hidden');
 
   updateVersionDisplay();
+  dinamizarElementosUI();
   renderDashboard();
   renderRecords();
   atualizarUIArquivo();
   loadSettingsUI();
+  renderCategoryManager();
   setupAutoLock();
 
   await carregarReferenciaArquivoSalva();
   if (APP.fileHandle) {
     await lerDadosDoArquivoVinculado();
+  }
+}
+
+// ─── GERENCIAMENTO DINÂMICO DE CATEGORIAS ───
+function dinamizarElementosUI() {
+  if (!APP.db || !APP.db.categories) return;
+
+  const selectForm = document.getElementById('form-type');
+  if (selectForm) {
+    selectForm.innerHTML = APP.db.categories.map(c => `<option value="${c.id}">${escHtml(c.label)}</option>`).join('');
+  }
+
+  const filterRow = document.getElementById('filter-row');
+  if (filterRow) {
+    let htmlChips = `<button class="filter-chip ${APP.currentFilter === 'all' ? 'active' : ''}" onclick="setFilter('all',this)">Todos</button>`;
+    htmlChips += APP.db.categories.map(c => {
+      return `<button class="filter-chip ${APP.currentFilter === c.id ? 'active' : ''}" onclick="setFilter('${c.id}',this)">${escHtml(c.label)}</button>`;
+    }).join('');
+    filterRow.innerHTML = htmlChips;
+  }
+}
+
+function renderCategoryManager() {
+  const managerList = document.getElementById('categories-manager-list');
+  if (!managerList || !APP.db || !APP.db.categories) return;
+
+  if (APP.db.categories.length === 0) {
+    managerList.innerHTML = '<div style="font-size:0.8rem; color:var(--text3)">Nenhuma categoria customizada cadastrada.</div>';
+    return;
+  }
+
+  managerList.innerHTML = APP.db.categories.map(c => `
+    <div class="category-manager-item">
+      <span class="category-manager-name" id="cat-label-text-${c.id}">${escHtml(c.label)}</span>
+      <div style="display:flex; gap:0.25rem">
+        <button class="btn btn-secondary btn-sm" style="padding:0.2rem 0.4rem;" onclick="editarCategoriaCustomizada('${c.id}')" title="Editar">✏️</button>
+        <button class="btn btn-danger btn-sm" style="padding:0.2rem 0.4rem;" onclick="removerCategoriaCustomizada('${c.id}')" title="Remover">🗑️</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function adicionarCategoriaCustomizada() {
+  const input = document.getElementById('new-cat-name');
+  if (!input) return;
+  const val = input.value.trim();
+  if (!val) {
+    showToast('Informe um nome válido para a categoria.', 'error');
+    return;
+  }
+
+  const id = 'cat_' + Date.now() + Math.random().toString(36).substring(2, 5);
+  APP.db.categories.push({ id, label: val });
+  
+  await Store.saveDB();
+  input.value = '';
+  showToast('Categoria adicionada com sucesso!', 'success');
+  dinamizarElementosUI();
+  renderCategoryManager();
+  renderDashboard();
+}
+
+async function editarCategoriaCustomizada(id) {
+  const cat = APP.db.categories.find(c => c.id === id);
+  if (!cat) return;
+
+  const novoNome = prompt('Altere o nome/etiqueta da categoria:', cat.label);
+  if (novoNome === null) return;
+  
+  const val = novoNome.trim();
+  if (!val) {
+    showToast('O nome da categoria não pode ficar vazio.', 'error');
+    return;
+  }
+
+  cat.label = val;
+  await Store.saveDB();
+  showToast('Categoria updated!', 'success');
+  dinamizarElementosUI();
+  renderCategoryManager();
+  renderDashboard();
+  renderRecords();
+}
+
+async function removerCategoriaCustomizada(id) {
+  if (!confirm('Deseja realmente remover esta categoria? Registros associados a ela serão exibidos como "Outro".')) return;
+
+  const idx = APP.db.categories.findIndex(c => c.id === id);
+  if (idx !== -1) {
+    APP.db.categories.splice(idx, 1);
+    
+    APP.db.records.forEach(r => {
+      if (r.type === id) r.type = 'other';
+    });
+
+    if (APP.currentFilter === id) APP.currentFilter = 'all';
+
+    await Store.saveDB();
+    showToast('Categoria removida.', 'success');
+    dinamizarElementosUI();
+    renderCategoryManager();
+    renderDashboard();
+    renderRecords();
   }
 }
 
@@ -750,16 +910,112 @@ function refreshCurrentPage() {
   if (APP.currentPage === 'home') renderDashboard();
   if (APP.currentPage === 'records') renderRecords();
   if (APP.currentPage === 'sync') atualizarUIArquivo();
+  if (APP.currentPage === 'settings') renderCategoryManager();
 }
 
-// ─── FORMULÁRIO (INSERÇÃO / EDIÇÃO) ───
+// ─── INTERFACE DE IMPORTAÇÃO EM LOTE ───
+function toggleBatchMode(isBatch) {
+  const standardFields = document.getElementById('form-fields-standard');
+  const batchBlock = document.getElementById('batch-import-block');
+  const btnSave = document.getElementById('btn-form-save');
+  const btnCancel = document.getElementById('btn-form-cancel');
+  
+  if (isBatch) {
+    standardFields.classList.add('hidden');
+    batchBlock.classList.remove('hidden');
+    btnSave.classList.add('hidden');
+    btnCancel.classList.add('hidden');
+    document.getElementById('form-page-title').textContent = 'Importação em Lote';
+  } else {
+    standardFields.classList.remove('hidden');
+    batchBlock.classList.add('hidden');
+    btnSave.classList.remove('hidden');
+    btnCancel.classList.remove('hidden');
+    document.getElementById('form-page-title').textContent = document.getElementById('form-record-id').value ? 'Editar Registro' : 'Novo Registro';
+  }
+}
+
+async function executarImportacaoEmLote() {
+  const textInput = document.getElementById('batch-text-input').value;
+  if (!textInput.trim()) {
+    showToast('Insira dados de texto válidos para processamento.', 'error');
+    return;
+  }
+
+  const linhas = textInput.split('\n');
+  let contagemSucesso = 0;
+
+  for (let i = 0; i < linhas.length; i++) {
+    const linha = linhas[i].trim();
+    if (!linha) continue;
+
+    // Quebra a linha usando o delimitador ponto e vírgula
+    const partes = linha.split(';');
+    
+    // Mapeamento posicional: <Título>;<Usuário>;<Senha>;<Opcional 01>;<Opcional 02>;<Observações>
+    const title = partes[0] ? partes[0].trim() : '';
+    
+    // Ignora a linha caso o título essencial esteja totalmente omitido
+    if (!title) continue;
+
+    const username = partes[1] ? partes[1].trim() : '';
+    const password = partes[2] ? partes[2] : '';
+    const optional01 = partes[3] ? partes[3].trim() : '';
+    const optional02 = partes[4] ? partes[4].trim() : '';
+    const notes = partes[5] ? partes[5].trim() : '';
+
+    const novoRegistro = {
+      id: crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2),
+      title,
+      username,
+      password,
+      optional01,
+      optional02,
+      type: 'login', // Categoria padrão inicial para dados importados em lote
+      notes,
+      createdAt: Date.now(),
+      updatedAt: Date.now()
+    };
+
+    APP.db.records.push(novoRegistro);
+    contagemSucesso++;
+  }
+
+  if (contagemSucesso > 0) {
+    await Store.saveDB();
+    showToast(`${contagemSucesso} registros importados com sucesso!`, 'success');
+    
+    // Reseta o estado do formulário e retorna à listagem
+    document.getElementById('batch-text-input').value = '';
+    document.getElementById('chk-batch-mode').checked = false;
+    toggleBatchMode(false);
+    showPage('records');
+  } else {
+    showToast('Nenhum registro estruturado pôde ser processado.', 'error');
+  }
+}
+
+// ─── FORMULÁRIO (INSERÇÃO / EDIÇÃO REGULAR) ───
 function abrirFormularioNovo() {
+  dinamizarElementosUI();
+  
+  document.getElementById('chk-batch-mode').checked = false;
+  toggleBatchMode(false);
+  document.getElementById('batch-toggle-container').classList.remove('hidden');
+
   document.getElementById('form-page-title').textContent = 'Novo Registro';
   document.getElementById('form-record-id').value = '';
   document.getElementById('form-title').value = '';
   document.getElementById('form-username').value = '';
   document.getElementById('form-password').value = '';
-  document.getElementById('form-type').value = 'login';
+  document.getElementById('form-optional01').value = '';
+  document.getElementById('form-optional02').value = '';
+  document.getElementById('form-notes').value = '';
+  
+  const select = document.getElementById('form-type');
+  if (select && select.options.length > 0) {
+    select.selectedIndex = 0;
+  }
   showPage('form');
 }
 
@@ -767,12 +1023,26 @@ function editarRegistro(id) {
   const r = APP.db.records.find(x => x.id === id);
   if (!r) return;
 
+  dinamizarElementosUI();
+  
+  document.getElementById('chk-batch-mode').checked = false;
+  toggleBatchMode(false);
+  // Oculta a caixa de seleção de lote durante a edição de um registro existente
+  document.getElementById('batch-toggle-container').classList.add('hidden');
+
   document.getElementById('form-page-title').textContent = 'Editar Registro';
   document.getElementById('form-record-id').value = r.id;
   document.getElementById('form-title').value = r.title || '';
   document.getElementById('form-username').value = r.username || '';
   document.getElementById('form-password').value = r.password || '';
-  document.getElementById('form-type').value = r.type || 'login';
+  document.getElementById('form-optional01').value = r.optional01 || '';
+  document.getElementById('form-optional02').value = r.optional02 || '';
+  document.getElementById('form-notes').value = r.notes || '';
+  
+  const select = document.getElementById('form-type');
+  if (select) {
+    select.value = r.type || 'login';
+  }
   showPage('form');
 }
 
@@ -785,7 +1055,10 @@ async function salvarFormulario() {
   const title = document.getElementById('form-title').value.trim();
   const username = document.getElementById('form-username').value.trim();
   const password = document.getElementById('form-password').value;
+  const optional01 = document.getElementById('form-optional01').value.trim();
+  const optional02 = document.getElementById('form-optional02').value.trim();
   const type = document.getElementById('form-type').value;
+  const notes = document.getElementById('form-notes').value;
 
   if (!title) {
     showToast('O título do registro é obrigatório.', 'error');
@@ -798,7 +1071,10 @@ async function salvarFormulario() {
       APP.db.records[idx].title = title;
       APP.db.records[idx].username = username;
       APP.db.records[idx].password = password;
+      APP.db.records[idx].optional01 = optional01;
+      APP.db.records[idx].optional02 = optional02;
       APP.db.records[idx].type = type;
+      APP.db.records[idx].notes = notes;
       APP.db.records[idx].updatedAt = Date.now();
       showToast('Registro atualizado com sucesso!', 'success');
     }
@@ -808,7 +1084,10 @@ async function salvarFormulario() {
       title,
       username,
       password,
+      optional01,
+      optional02,
       type,
+      notes,
       createdAt: Date.now(),
       updatedAt: Date.now()
     };
@@ -864,10 +1143,15 @@ function getFilteredRecords() {
   if (APP.currentFilter !== 'all') recs = recs.filter(r => r.type === APP.currentFilter);
   if (APP.searchQuery) {
     const q = APP.searchQuery.toLowerCase();
-    recs = recs.filter(r => (r.title||'').toLowerCase().includes(q) || (r.username||'').toLowerCase().includes(q));
+    recs = recs.filter(r => 
+      (r.title||'').toLowerCase().includes(q) || 
+      (r.username||'').toLowerCase().includes(q) || 
+      (r.optional01||'').toLowerCase().includes(q) || 
+      (r.optional02||'').toLowerCase().includes(q) || 
+      (r.notes||'').toLowerCase().includes(q)
+    );
   }
 
-  // Aplicação da ordenação ascendente ou descendente pelo título
   recs.sort((a, b) => {
     const titleA = a.title || '';
     const titleB = b.title || '';
@@ -891,16 +1175,36 @@ function formatarDataExibicao(timestamp) {
 }
 
 function recordCardHTML(r) {
-  const typeLabel = {bank:'Banco',site:'Site',login:'Login',other:'Outro'}[r.type]||'Outro';
+  let typeLabel = 'Outro';
+  if (APP.db && APP.db.categories) {
+    const cat = APP.db.categories.find(c => c.id === r.type);
+    if (cat) typeLabel = cat.label;
+  }
+  
   const ultimaEdicao = formatarDataExibicao(r.updatedAt || r.createdAt);
+  
+  let optionalsHTML = '';
+  if ((r.optional01 && r.optional01.trim()) || (r.optional02 && r.optional02.trim())) {
+    optionalsHTML = `<div class="record-optional-block">`;
+    if (r.optional01 && r.optional01.trim()) optionalsHTML += `<span><strong>OPC1:</strong> ${escHtml(r.optional01)}</span>`;
+    if (r.optional02 && r.optional02.trim()) optionalsHTML += `<span><strong>OPC2:</strong> ${escHtml(r.optional02)}</span>`;
+    optionalsHTML += `</div>`;
+  }
+
+  let notesHTML = '';
+  if (r.notes && r.notes.trim()) {
+    notesHTML = `<div class="record-notes">${escHtml(r.notes)}</div>`;
+  }
   
   return `<div class="record-card">
     <div class="record-icon">🔑</div>
     <div class="record-info">
       <div class="record-title">${escHtml(r.title)}</div>
       <div class="record-sub">${escHtml(r.username||'')}</div>
+      ${optionalsHTML}
+      ${notesHTML}
       <div class="record-meta">
-        <span class="tag">${typeLabel}</span>
+        <span class="tag">${escHtml(typeLabel)}</span>
         <span class="date-label">Modificado: ${ultimaEdicao}</span>
       </div>
     </div>
@@ -974,7 +1278,11 @@ function importData(e) {
       const parsed = JSON.parse(evt.target.result);
       if (parsed && parsed.records) {
         APP.db = parsed;
+        if (!APP.db.categories || APP.db.categories.length === 0) {
+          APP.db.categories = [...DEFAULT_CATEGORIES];
+        }
         await Store.saveDB();
+        dinamizarElementosUI();
         refreshCurrentPage();
         showToast('Dados manuais importados com sucesso.', 'success');
       }
