@@ -66,7 +66,7 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
 .btn-full{width:100%}
 .btn-sm{padding:.4rem .6rem;font-size:.8rem;border-radius:6px}
 .btn-icon{width:36px;height:36px;padding:0;border-radius:var(--radius-sm);flex-shrink:0}
-.version-badge{font-size:.75rem;color:var(--text3);letter-spacing:.1em;text-align:center;font-weight:600;margin-top:0.5rem}
+.version-badge{font-size:.75rem;color:var(--text3);letter-spacing:.1em;text-align:center;font-weight:600}
 .error-msg{color:var(--danger);font-size:.8rem;margin-top:.4rem}
 
 /* ─── TOPBAR ─── */
@@ -223,13 +223,13 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
       <div id="login-error" class="error-msg" style="margin-bottom:.75rem"></div>
       <button class="btn btn-primary btn-full" onclick="doLogin()">Entrar</button>
     </div>
-    <div class="version-badge" id="login-version">PWARRUDA V2 Build 19</div>
+    <div class="version-badge" id="login-version"></div>
   </div>
 
   <div id="topbar" class="hidden">
     <span class="topbar-logo">🔐 PWA</span>
     <input type="search" class="topbar-search" id="search-input" placeholder="Buscar..." oninput="doSearch(this.value)">
-    <span class="sync-status material-symbols-outlined" id="sync-indicator" title="Sincronização local ativa">sync_saved_locally</span>
+    <span class="sync-status material-symbols-outlined" id="sync-indicator" title="Sincronização local activa">sync_saved_locally</span>
     <button class="btn btn-icon btn-secondary" onclick="doLogout()" title="Sair do Aplicativo">
       <span class="material-symbols-outlined">logout</span>
     </button>
@@ -409,7 +409,7 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
       <div class="settings-section">
         <div class="settings-title">Informações</div>
         <div class="settings-row">
-          <div><div class="settings-label">Versão</div><div class="settings-sublabel" id="settings-version">PWARRUDA V2 Build 19</div></div>
+          <div><div class="settings-label">Versão</div><div class="settings-sublabel" id="settings-version"></div></div>
         </div>
       </div>
 
@@ -499,7 +499,8 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
 
 const APP = {
   name: 'PWARRUDA V2',
-  build: '19',
+  build: '16',
+  get fullName(){ return `${this.name} Build ${this.build}` },
   encKey: null,
   db: null,
   currentPage: 'home',
@@ -524,6 +525,14 @@ const DEFAULT_CATEGORIES = [
   { id: 'site', label: 'Site', icon: '🌐' },
   { id: 'other', label: 'Outro', icon: '📁' }
 ];
+
+document.addEventListener("DOMContentLoaded", function() {
+  updateVersionDisplay();
+});
+
+window.onload = function() {
+  updateVersionDisplay();
+};
 
 function updateVersionDisplay() {
   const v = `${APP.name} Build ${APP.build}`;
@@ -608,20 +617,18 @@ const Store = {
   }
 };
 
-window.saveSetting = function(k, v) { Store.saveSetting(k, v); };
+function saveSetting(k, v) { Store.saveSetting(k, v); }
 
 // ─── FILE SYSTEM ACCESS CORE ───
 async function verificarPermissaoArquivo(fileHandle, readWrite) {
   const options = {};
   if (readWrite) options.mode = 'readwrite';
-  try {
-    if ((await fileHandle.queryPermission(options)) === 'granted') return true;
-    if ((await fileHandle.requestPermission(options)) === 'granted') return true;
-  } catch(e) { console.warn("File System Access API permission prompt skipped."); }
+  if ((await fileHandle.queryPermission(options)) === 'granted') return true;
+  if ((await fileHandle.requestPermission(options)) === 'granted') return true;
   return false;
 }
 
-window.vincularArquivoNovo = async function() {
+async function vincularArquivoNovo() {
   if (!APP.encKey) { showToast('Efetue login antes de criar arquivos.', 'error'); return; }
   const options = {
     suggestedName: 'senhas.json',
@@ -638,9 +645,9 @@ window.vincularArquivoNovo = async function() {
   } catch (err) {
     if (err.name !== 'AbortError') showToast('Falha ao vincular o arquivo.', 'error');
   }
-};
+}
 
-window.carregarArquivoExistente = async function() {
+async function carregarArquivoExistente() {
   if (!APP.encKey) { showToast('Efetue login antes de processar arquivos.', 'error'); return; }
   const options = {
     types: [{ description: 'Arquivo de Dados Criptografados', accept: { 'application/json': ['.json'] } }],
@@ -656,7 +663,7 @@ window.carregarArquivoExistente = async function() {
   } catch (err) {
     if (err.name !== 'AbortError') showToast('Erro ao ler o arquivo selecionado.', 'error');
   }
-};
+}
 
 async function lerDadosDoArquivoVinculado() {
   if (!APP.fileHandle) return;
@@ -716,44 +723,37 @@ function atualizarUIArquivo() {
 // ─── INDEXEDDB REFERÊNCIA ARQUIVO ───
 function salvarReferenciaArquivo(handle) {
   return new Promise((resolve) => {
-    try {
-      const request = indexedDB.open("pwarruda_local_storage", 1);
-      request.onupgradeneeded = (e) => e.target.result.createObjectStore("handles");
-      request.onsuccess = (e) => {
-        const tx = e.target.result.transaction("handles", "readwrite");
-        tx.objectStore("handles").put(handle, "ultimo_handle");
-        tx.oncomplete = () => resolve();
-      };
-      request.onerror = () => resolve();
-    } catch(err) { resolve(); }
+    const request = indexedDB.open("pwarruda_local_storage", 1);
+    request.onupgradeneeded = (e) => e.target.result.createObjectStore("handles");
+    request.onsuccess = (e) => {
+      const tx = e.target.result.transaction("handles", "readwrite");
+      tx.objectStore("handles").put(handle, "ultimo_handle");
+      tx.oncomplete = () => resolve();
+    };
   });
 }
 
 function carregarReferenciaArquivoSalva() {
   return new Promise((resolve) => {
-    try {
-      const request = indexedDB.open("pwarruda_local_storage", 1);
-      request.onupgradeneeded = (e) => e.target.result.createObjectStore("handles");
-      request.onsuccess = (e) => {
-        const tx = e.target.result.transaction("handles", "readonly");
-        const getReq = tx.objectStore("handles").get("ultimo_handle");
-        getReq.onsuccess = () => {
-          if (getReq.result) {
-            APP.fileHandle = getReq.result;
-            APP.fileName = getReq.result.name;
-            atualizarUIArquivo();
-          }
-          resolve();
-        };
-        getReq.onerror = () => resolve();
+    const request = indexedDB.open("pwarruda_local_storage", 1);
+    request.onupgradeneeded = (e) => e.target.result.createObjectStore("handles");
+    request.onsuccess = (e) => {
+      const tx = e.target.result.transaction("handles", "readonly");
+      const getReq = tx.objectStore("handles").get("ultimo_handle");
+      getReq.onsuccess = () => {
+        if (getReq.result) {
+          APP.fileHandle = getReq.result;
+          APP.fileName = getReq.result.name;
+          atualizarUIArquivo();
+        }
+        resolve();
       };
-      request.onerror = () => resolve();
-    } catch(err) { resolve(); }
+    };
   });
 }
 
 // ─── ALTERAÇÃO DE SENHA MASTER ───
-window.alterarSenhaMestre = async function() {
+async function alterarSenhaMestre() {
   const senhaAtual = document.getElementById('change-pwd-current').value;
   const novaSenha = document.getElementById('change-pwd-new').value;
   const confirmacaoSenha = document.getElementById('change-pwd-confirm').value;
@@ -795,54 +795,44 @@ window.alterarSenhaMestre = async function() {
     document.getElementById('change-pwd-new').value = '';
     document.getElementById('change-pwd-confirm').value = '';
 
-    showToast('Senha master e arquivos atualizados.', 'success');
+    showToast('Senha master e arquivos updated.', 'success');
   } catch (err) {
     console.error(err);
     showToast('Erro ao processar a alteração de senha.', 'error');
   }
-};
+}
 
 // ─── LOGIN & SESSÃO ───
-window.doLogin = async function() {
+async function doLogin() {
   const user = document.getElementById('login-user').value.trim();
   const pass = document.getElementById('login-pass').value;
   const errEl = document.getElementById('login-error');
-  if (errEl) errEl.textContent = '';
+  errEl.textContent = '';
 
-  if (!user || !pass) {
-    if (errEl) errEl.textContent = 'Informe o usuário e a senha.';
-    return;
+  let storedUser = localStorage.getItem(ADMIN_USER_KEY);
+  let storedHash = localStorage.getItem(ADMIN_PASS_HASH_KEY);
+
+  if (!storedUser || !storedHash) {
+    storedUser = user;
+    storedHash = await Crypto.hashPassword(pass);
+    localStorage.setItem(ADMIN_USER_KEY, storedUser);
+    localStorage.setItem(ADMIN_PASS_HASH_KEY, storedHash);
   }
 
-  try {
-    let storedUser = localStorage.getItem(ADMIN_USER_KEY);
-    let storedHash = localStorage.getItem(ADMIN_PASS_HASH_KEY);
+  if (user !== storedUser) { errEl.textContent = 'Usuário inválido.'; return; }
 
-    if (!storedUser || !storedHash) {
-      storedUser = user;
-      storedHash = await Crypto.hashPassword(pass);
-      localStorage.setItem(ADMIN_USER_KEY, storedUser);
-      localStorage.setItem(ADMIN_PASS_HASH_KEY, storedHash);
-    }
+  const inputHash = await Crypto.hashPassword(pass);
+  if (inputHash !== storedHash) { errEl.textContent = 'Senha incorreta.'; return; }
 
-    if (user !== storedUser) { if (errEl) errEl.textContent = 'Usuário inválido.'; return; }
+  APP.encKey = await Crypto.deriveKey(pass, 'pwarruda_aes256_' + user);
+  Store.loadSettings();
+  await Store.loadDB();
 
-    const inputHash = await Crypto.hashPassword(pass);
-    if (inputHash !== storedHash) { if (errEl) errEl.textContent = 'Senha incorreta.'; return; }
+  sessionStorage.setItem(SESSION_KEY, JSON.stringify({ user, ts: Date.now() }));
+  await initApp();
+}
 
-    APP.encKey = await Crypto.deriveKey(pass, 'pwarruda_aes256_' + user);
-    Store.loadSettings();
-    await Store.loadDB();
-
-    sessionStorage.setItem(SESSION_KEY, JSON.stringify({ user, ts: Date.now() }));
-    await initApp();
-  } catch(e) {
-    console.error(e);
-    if (errEl) errEl.textContent = 'Erro no processamento criptográfico.';
-  }
-};
-
-window.doLogout = async function() {
+async function doLogout() {
   APP.encKey = null;
   APP.db = null;
   APP.fileHandle = null;
@@ -858,7 +848,7 @@ window.doLogout = async function() {
   document.getElementById('bottom-nav').classList.add('hidden');
   clearLockTimer();
   updateVersionDisplay();
-};
+}
 
 async function initApp() {
   document.getElementById('login-screen').classList.add('hidden');
@@ -924,7 +914,7 @@ function renderCategoryManager() {
   `).join('');
 }
 
-window.processarFormularioCategoria = async function() {
+async function processarFormularioCategoria() {
   const inputName = document.getElementById('new-cat-name');
   const selectIcon = document.getElementById('new-cat-icon');
   const editIdInput = document.getElementById('edit-cat-id');
@@ -944,7 +934,7 @@ window.processarFormularioCategoria = async function() {
     if (cat) {
       cat.label = nameVal;
       cat.icon = iconVal;
-      showToast('Categoria atualizada.', 'success');
+      showToast('Categoria updated.', 'success');
     }
     cancelarEdicaoCategoria();
   } else {
@@ -960,9 +950,9 @@ window.processarFormularioCategoria = async function() {
   renderCategoryManager();
   renderDashboard();
   renderRecords();
-};
+}
 
-window.prepararEdicaoCategoria = function(id) {
+function prepararEdicaoCategoria(id) {
   const cat = APP.db.categories.find(c => c.id === id);
   if (!cat) return;
 
@@ -974,9 +964,9 @@ window.prepararEdicaoCategoria = function(id) {
   document.getElementById('btn-cat-save').textContent = '💾 Salvar Alterações';
   document.getElementById('btn-cat-cancel').classList.remove('hidden');
   document.getElementById('new-cat-name').focus();
-};
+}
 
-window.cancelarEdicaoCategoria = function() {
+function cancelarEdicaoCategoria() {
   document.getElementById('category-manager-title').textContent = 'Gerenciar Categorias';
   document.getElementById('edit-cat-id').value = '';
   document.getElementById('new-cat-name').value = '';
@@ -984,9 +974,9 @@ window.cancelarEdicaoCategoria = function() {
   
   document.getElementById('btn-cat-save').textContent = '✨ Adicionar Categoria';
   document.getElementById('btn-cat-cancel').classList.add('hidden');
-};
+}
 
-window.removerCategoriaCustomizada = async function(id) {
+async function removerCategoriaCustomizada(id) {
   if (!confirm('Deseja realmente remover esta categoria? Registros associados a ela serão exibidos como "Outro".')) return;
 
   const idx = APP.db.categories.findIndex(c => c.id === id);
@@ -1007,10 +997,10 @@ window.removerCategoriaCustomizada = async function(id) {
     renderDashboard();
     renderRecords();
   }
-};
+}
 
 // ─── NAVEGAÇÃO ───
-window.showPage = function(p) {
+function showPage(p) {
   document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
   if (document.getElementById('page-' + p)) document.getElementById('page-' + p).classList.add('active');
@@ -1018,7 +1008,7 @@ window.showPage = function(p) {
   APP.currentPage = p;
   refreshCurrentPage();
   document.getElementById('main').scrollTop = 0;
-};
+}
 
 function refreshCurrentPage() {
   if (APP.currentPage === 'home') renderDashboard();
@@ -1028,7 +1018,7 @@ function refreshCurrentPage() {
 }
 
 // ─── INTERFACE DE IMPORTAÇÃO EM LOTE ───
-window.toggleBatchMode = function(isBatch) {
+function toggleBatchMode(isBatch) {
   const standardFields = document.getElementById('form-fields-standard');
   const batchBlock = document.getElementById('batch-import-block');
   const btnSave = document.getElementById('btn-form-save');
@@ -1047,9 +1037,9 @@ window.toggleBatchMode = function(isBatch) {
     btnCancel.classList.remove('hidden');
     document.getElementById('form-page-title').textContent = document.getElementById('form-record-id').value ? 'Editar Registro' : 'Novo Registro';
   }
-};
+}
 
-window.executarImportacaoEmLote = async function() {
+async function executarImportacaoEmLote() {
   const textInput = document.getElementById('batch-text-input').value;
   if (!textInput.trim()) {
     showToast('Insira dados de texto válidos para processamento.', 'error');
@@ -1102,10 +1092,10 @@ window.executarImportacaoEmLote = async function() {
   } else {
     showToast('Nenhum registro estruturado pôde ser processado.', 'error');
   }
-};
+}
 
 // ─── FORMULÁRIO (INSERÇÃO / EDIÇÃO REGULAR) ───
-window.abrirFormularioNovo = function() {
+function abrirFormularioNovo() {
   dinamizarElementosUI();
   
   document.getElementById('chk-batch-mode').checked = false;
@@ -1126,9 +1116,9 @@ window.abrirFormularioNovo = function() {
     select.selectedIndex = 0;
   }
   showPage('form');
-};
+}
 
-window.editarRegistro = function(id) {
+function editarRegistro(id) {
   const r = APP.db.records.find(x => x.id === id);
   if (!r) return;
 
@@ -1152,13 +1142,13 @@ window.editarRegistro = function(id) {
     select.value = r.type || 'login';
   }
   showPage('form');
-};
+}
 
-window.cancelarFormulario = function() {
+function cancelarFormulario() {
   showPage('records');
-};
+}
 
-window.salvarFormulario = async function() {
+async function salvarFormulario() {
   const id = document.getElementById('form-record-id').value;
   const title = document.getElementById('form-title').value.trim();
   const username = document.getElementById('form-username').value.trim();
@@ -1205,9 +1195,9 @@ window.salvarFormulario = async function() {
 
   await Store.saveDB();
   showPage('records');
-};
+}
 
-window.excluirRegistro = async function(id) {
+async function excluirRegistro(id) {
   if (!confirm('Confirma a exclusão definitiva deste registro?')) return;
   
   const idx = APP.db.records.findIndex(x => x.id === id);
@@ -1217,10 +1207,10 @@ window.excluirRegistro = async function(id) {
     showToast('Registro removido do banco de dados.', 'success');
     refreshCurrentPage();
   }
-};
+}
 
 // ─── CLASSIFICAÇÃO / ORDENAÇÃO ───
-window.toggleSort = function() {
+function toggleSort() {
   APP.sortOrder = (APP.sortOrder === 'asc') ? 'desc' : 'asc';
   const icon = document.getElementById('sort-icon');
   if (icon) {
@@ -1228,7 +1218,7 @@ window.toggleSort = function() {
   }
   showToast(`Ordenação: ${APP.sortOrder === 'asc' ? 'A-Z' : 'Z-A'}`, 'info');
   renderRecords();
-};
+}
 
 // ─── RENDERIZADORES VISUAIS ───
 function renderDashboard() {
@@ -1329,25 +1319,25 @@ function recordCardHTML(r) {
   </div>`;
 }
 
-window.setFilter = function(f, el) {
+function setFilter(f, el) {
   APP.currentFilter = f;
   document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
   if (el) el.classList.add('active');
   renderRecords();
-};
+}
 
-window.doSearch = function(q) {
+function doSearch(q) {
   APP.searchQuery = q;
   renderRecords();
-};
+}
 
-window.copyPassword = function(id) {
+function copyPassword(id) {
   const r = APP.db.records.find(x=>x.id===id);
   if (r && r.password) {
     navigator.clipboard.writeText(r.password);
     showToast('Senha copiada para a área de transferência!', 'success');
   }
-};
+}
 
 // ─── CONFIGURAÇÕES AUXILIARES ───
 function loadSettingsUI() {
@@ -1373,16 +1363,16 @@ function updateSyncIndicator() {
   }
 }
 
-window.exportData = function() {
+function exportData() {
   if(!APP.db) return;
   const blob = new Blob([JSON.stringify(APP.db, null, 2)], {type: 'application/json'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = 'backup_seguro.json';
   a.click();
-};
+}
 
-window.importData = function(e) {
+function importData(e) {
   const file = e.target.files[0];
   if (!file) return;
   const reader = new FileReader();
@@ -1403,24 +1393,23 @@ window.importData = function(e) {
     } catch(err) { showToast('Arquivo de importação inválido.', 'error'); }
   };
   reader.readAsText(file);
-};
+}
 
-window.confirmClearData = function() {
+function confirmClearData() {
   if (confirm("Confirma a eliminação de todos os dados locais do PWA?")) {
     localStorage.clear();
     location.reload();
   }
-};
+}
 
 // ─── UTILITÁRIOS ───
 function escHtml(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-window.togglePwd = function(id, btn) {
+function togglePwd(id, btn) {
   const inp = document.getElementById(id);
   if (!inp) return;
   if (inp.type === 'password') { inp.type = 'text'; if(btn) btn.textContent = '🙈'; }
   else { inp.type = 'password'; if(btn) btn.textContent = '👁'; }
-};
+}
 
 let toastTimer;
 function showToast(msg, type='info') {
@@ -1431,9 +1420,6 @@ function showToast(msg, type='info') {
   el.className = `toast-${type} show`;
   toastTimer = setTimeout(() => el.classList.remove('show'), 2800);
 }
-
-// ─── INICIALIZAÇÃO SEGURA DO ESCOPO GLOBAL ───
-updateVersionDisplay();
 </script>
 </body>
 </html>
