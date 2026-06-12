@@ -223,7 +223,7 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
       <div id="login-error" class="error-msg" style="margin-bottom:.75rem"></div>
       <button class="btn btn-primary btn-full" onclick="doLogin()">Entrar</button>
     </div>
-    <div class="version-badge" id="login-version">PWARRUDA V2 Build 17</div>
+    <div class="version-badge" id="login-version">PWARRUDA V2 Build 18</div>
   </div>
 
   <div id="topbar" class="hidden">
@@ -409,7 +409,7 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
       <div class="settings-section">
         <div class="settings-title">Informações</div>
         <div class="settings-row">
-          <div><div class="settings-label">Versão</div><div class="settings-sublabel" id="settings-version">PWARRUDA V2 Build 17</div></div>
+          <div><div class="settings-label">Versão</div><div class="settings-sublabel" id="settings-version">PWARRUDA V2 Build 18</div></div>
         </div>
       </div>
 
@@ -499,8 +499,7 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
 
 const APP = {
   name: 'PWARRUDA V2',
-  build: '17',
-  get fullName(){ return `${this.name} Build ${this.build}` },
+  build: '18',
   encKey: null,
   db: null,
   currentPage: 'home',
@@ -525,10 +524,6 @@ const DEFAULT_CATEGORIES = [
   { id: 'site', label: 'Site', icon: '🌐' },
   { id: 'other', label: 'Outro', icon: '📁' }
 ];
-
-window.addEventListener("DOMContentLoaded", function() {
-  updateVersionDisplay();
-});
 
 function updateVersionDisplay() {
   const v = `${APP.name} Build ${APP.build}`;
@@ -949,7 +944,7 @@ async function processarFormularioCategoria() {
     if (cat) {
       cat.label = nameVal;
       cat.icon = iconVal;
-      showToast('Categoria atualizada.', 'success');
+      showToast('Categoria updated.', 'success');
     }
     cancelarEdicaoCategoria();
   } else {
@@ -1054,7 +1049,7 @@ function toggleBatchMode(isBatch) {
   }
 }
 
-async function executarImportacaoEmLote() {
+async function ejecutarImportacaoEmLote() {
   const textInput = document.getElementById('batch-text-input').value;
   if (!textInput.trim()) {
     showToast('Insira dados de texto válidos para processamento.', 'error');
@@ -1350,7 +1345,7 @@ function copyPassword(id) {
   const r = APP.db.records.find(x=>x.id===id);
   if (r && r.password) {
     navigator.clipboard.writeText(r.password);
-    showToast('Senha copied para a área de transferência!', 'success');
+    showToast('Senha copiada para a área de transferência!', 'success');
   }
 }
 
@@ -1435,6 +1430,9 @@ function showToast(msg, type='info') {
   el.className = `toast-${type} show`;
   toastTimer = setTimeout(() => el.classList.remove('show'), 2800);
 }
+
+// ─── INICIALIZAÇÃO SEGURA DO ESCOPO GLOBAL ───
+updateVersionDisplay();
 </script>
 </body>
 </html>
