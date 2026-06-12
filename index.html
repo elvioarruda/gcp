@@ -223,13 +223,13 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
       <div id="login-error" class="error-msg" style="margin-bottom:.75rem"></div>
       <button class="btn btn-primary btn-full" onclick="doLogin()">Entrar</button>
     </div>
-    <div class="version-badge" id="login-version">PWARRUDA V2 Build 18</div>
+    <div class="version-badge" id="login-version">PWARRUDA V2 Build 19</div>
   </div>
 
   <div id="topbar" class="hidden">
     <span class="topbar-logo">🔐 PWA</span>
     <input type="search" class="topbar-search" id="search-input" placeholder="Buscar..." oninput="doSearch(this.value)">
-    <span class="sync-status material-symbols-outlined" id="sync-indicator" title="Sincronização local activa">sync_saved_locally</span>
+    <span class="sync-status material-symbols-outlined" id="sync-indicator" title="Sincronização local ativa">sync_saved_locally</span>
     <button class="btn btn-icon btn-secondary" onclick="doLogout()" title="Sair do Aplicativo">
       <span class="material-symbols-outlined">logout</span>
     </button>
@@ -409,7 +409,7 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
       <div class="settings-section">
         <div class="settings-title">Informações</div>
         <div class="settings-row">
-          <div><div class="settings-label">Versão</div><div class="settings-sublabel" id="settings-version">PWARRUDA V2 Build 18</div></div>
+          <div><div class="settings-label">Versão</div><div class="settings-sublabel" id="settings-version">PWARRUDA V2 Build 19</div></div>
         </div>
       </div>
 
@@ -499,7 +499,7 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
 
 const APP = {
   name: 'PWARRUDA V2',
-  build: '18',
+  build: '19',
   encKey: null,
   db: null,
   currentPage: 'home',
@@ -608,7 +608,7 @@ const Store = {
   }
 };
 
-function saveSetting(k, v) { Store.saveSetting(k, v); }
+window.saveSetting = function(k, v) { Store.saveSetting(k, v); };
 
 // ─── FILE SYSTEM ACCESS CORE ───
 async function verificarPermissaoArquivo(fileHandle, readWrite) {
@@ -621,7 +621,7 @@ async function verificarPermissaoArquivo(fileHandle, readWrite) {
   return false;
 }
 
-async function vincularArquivoNovo() {
+window.vincularArquivoNovo = async function() {
   if (!APP.encKey) { showToast('Efetue login antes de criar arquivos.', 'error'); return; }
   const options = {
     suggestedName: 'senhas.json',
@@ -638,9 +638,9 @@ async function vincularArquivoNovo() {
   } catch (err) {
     if (err.name !== 'AbortError') showToast('Falha ao vincular o arquivo.', 'error');
   }
-}
+};
 
-async function carregarArquivoExistente() {
+window.carregarArquivoExistente = async function() {
   if (!APP.encKey) { showToast('Efetue login antes de processar arquivos.', 'error'); return; }
   const options = {
     types: [{ description: 'Arquivo de Dados Criptografados', accept: { 'application/json': ['.json'] } }],
@@ -656,7 +656,7 @@ async function carregarArquivoExistente() {
   } catch (err) {
     if (err.name !== 'AbortError') showToast('Erro ao ler o arquivo selecionado.', 'error');
   }
-}
+};
 
 async function lerDadosDoArquivoVinculado() {
   if (!APP.fileHandle) return;
@@ -753,7 +753,7 @@ function carregarReferenciaArquivoSalva() {
 }
 
 // ─── ALTERAÇÃO DE SENHA MASTER ───
-async function alterarSenhaMestre() {
+window.alterarSenhaMestre = async function() {
   const senhaAtual = document.getElementById('change-pwd-current').value;
   const novaSenha = document.getElementById('change-pwd-new').value;
   const confirmacaoSenha = document.getElementById('change-pwd-confirm').value;
@@ -800,10 +800,10 @@ async function alterarSenhaMestre() {
     console.error(err);
     showToast('Erro ao processar a alteração de senha.', 'error');
   }
-}
+};
 
 // ─── LOGIN & SESSÃO ───
-async function doLogin() {
+window.doLogin = async function() {
   const user = document.getElementById('login-user').value.trim();
   const pass = document.getElementById('login-pass').value;
   const errEl = document.getElementById('login-error');
@@ -840,9 +840,9 @@ async function doLogin() {
     console.error(e);
     if (errEl) errEl.textContent = 'Erro no processamento criptográfico.';
   }
-}
+};
 
-async function doLogout() {
+window.doLogout = async function() {
   APP.encKey = null;
   APP.db = null;
   APP.fileHandle = null;
@@ -858,7 +858,7 @@ async function doLogout() {
   document.getElementById('bottom-nav').classList.add('hidden');
   clearLockTimer();
   updateVersionDisplay();
-}
+};
 
 async function initApp() {
   document.getElementById('login-screen').classList.add('hidden');
@@ -924,7 +924,7 @@ function renderCategoryManager() {
   `).join('');
 }
 
-async function processarFormularioCategoria() {
+window.processarFormularioCategoria = async function() {
   const inputName = document.getElementById('new-cat-name');
   const selectIcon = document.getElementById('new-cat-icon');
   const editIdInput = document.getElementById('edit-cat-id');
@@ -944,7 +944,7 @@ async function processarFormularioCategoria() {
     if (cat) {
       cat.label = nameVal;
       cat.icon = iconVal;
-      showToast('Categoria updated.', 'success');
+      showToast('Categoria atualizada.', 'success');
     }
     cancelarEdicaoCategoria();
   } else {
@@ -960,9 +960,9 @@ async function processarFormularioCategoria() {
   renderCategoryManager();
   renderDashboard();
   renderRecords();
-}
+};
 
-function prepararEdicaoCategoria(id) {
+window.prepararEdicaoCategoria = function(id) {
   const cat = APP.db.categories.find(c => c.id === id);
   if (!cat) return;
 
@@ -974,9 +974,9 @@ function prepararEdicaoCategoria(id) {
   document.getElementById('btn-cat-save').textContent = '💾 Salvar Alterações';
   document.getElementById('btn-cat-cancel').classList.remove('hidden');
   document.getElementById('new-cat-name').focus();
-}
+};
 
-function cancelarEdicaoCategoria() {
+window.cancelarEdicaoCategoria = function() {
   document.getElementById('category-manager-title').textContent = 'Gerenciar Categorias';
   document.getElementById('edit-cat-id').value = '';
   document.getElementById('new-cat-name').value = '';
@@ -984,9 +984,9 @@ function cancelarEdicaoCategoria() {
   
   document.getElementById('btn-cat-save').textContent = '✨ Adicionar Categoria';
   document.getElementById('btn-cat-cancel').classList.add('hidden');
-}
+};
 
-async function removerCategoriaCustomizada(id) {
+window.removerCategoriaCustomizada = async function(id) {
   if (!confirm('Deseja realmente remover esta categoria? Registros associados a ela serão exibidos como "Outro".')) return;
 
   const idx = APP.db.categories.findIndex(c => c.id === id);
@@ -1007,10 +1007,10 @@ async function removerCategoriaCustomizada(id) {
     renderDashboard();
     renderRecords();
   }
-}
+};
 
 // ─── NAVEGAÇÃO ───
-function showPage(p) {
+window.showPage = function(p) {
   document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
   if (document.getElementById('page-' + p)) document.getElementById('page-' + p).classList.add('active');
@@ -1018,7 +1018,7 @@ function showPage(p) {
   APP.currentPage = p;
   refreshCurrentPage();
   document.getElementById('main').scrollTop = 0;
-}
+};
 
 function refreshCurrentPage() {
   if (APP.currentPage === 'home') renderDashboard();
@@ -1028,7 +1028,7 @@ function refreshCurrentPage() {
 }
 
 // ─── INTERFACE DE IMPORTAÇÃO EM LOTE ───
-function toggleBatchMode(isBatch) {
+window.toggleBatchMode = function(isBatch) {
   const standardFields = document.getElementById('form-fields-standard');
   const batchBlock = document.getElementById('batch-import-block');
   const btnSave = document.getElementById('btn-form-save');
@@ -1047,9 +1047,9 @@ function toggleBatchMode(isBatch) {
     btnCancel.classList.remove('hidden');
     document.getElementById('form-page-title').textContent = document.getElementById('form-record-id').value ? 'Editar Registro' : 'Novo Registro';
   }
-}
+};
 
-async function ejecutarImportacaoEmLote() {
+window.executarImportacaoEmLote = async function() {
   const textInput = document.getElementById('batch-text-input').value;
   if (!textInput.trim()) {
     showToast('Insira dados de texto válidos para processamento.', 'error');
@@ -1102,10 +1102,10 @@ async function ejecutarImportacaoEmLote() {
   } else {
     showToast('Nenhum registro estruturado pôde ser processado.', 'error');
   }
-}
+};
 
 // ─── FORMULÁRIO (INSERÇÃO / EDIÇÃO REGULAR) ───
-function abrirFormularioNovo() {
+window.abrirFormularioNovo = function() {
   dinamizarElementosUI();
   
   document.getElementById('chk-batch-mode').checked = false;
@@ -1126,9 +1126,9 @@ function abrirFormularioNovo() {
     select.selectedIndex = 0;
   }
   showPage('form');
-}
+};
 
-function editarRegistro(id) {
+window.editarRegistro = function(id) {
   const r = APP.db.records.find(x => x.id === id);
   if (!r) return;
 
@@ -1152,13 +1152,13 @@ function editarRegistro(id) {
     select.value = r.type || 'login';
   }
   showPage('form');
-}
+};
 
-function cancelarFormulario() {
+window.cancelarFormulario = function() {
   showPage('records');
-}
+};
 
-async function salvarFormulario() {
+window.salvarFormulario = async function() {
   const id = document.getElementById('form-record-id').value;
   const title = document.getElementById('form-title').value.trim();
   const username = document.getElementById('form-username').value.trim();
@@ -1205,9 +1205,9 @@ async function salvarFormulario() {
 
   await Store.saveDB();
   showPage('records');
-}
+};
 
-async function excluirRegistro(id) {
+window.excluirRegistro = async function(id) {
   if (!confirm('Confirma a exclusão definitiva deste registro?')) return;
   
   const idx = APP.db.records.findIndex(x => x.id === id);
@@ -1217,10 +1217,10 @@ async function excluirRegistro(id) {
     showToast('Registro removido do banco de dados.', 'success');
     refreshCurrentPage();
   }
-}
+};
 
 // ─── CLASSIFICAÇÃO / ORDENAÇÃO ───
-function toggleSort() {
+window.toggleSort = function() {
   APP.sortOrder = (APP.sortOrder === 'asc') ? 'desc' : 'asc';
   const icon = document.getElementById('sort-icon');
   if (icon) {
@@ -1228,7 +1228,7 @@ function toggleSort() {
   }
   showToast(`Ordenação: ${APP.sortOrder === 'asc' ? 'A-Z' : 'Z-A'}`, 'info');
   renderRecords();
-}
+};
 
 // ─── RENDERIZADORES VISUAIS ───
 function renderDashboard() {
@@ -1329,25 +1329,25 @@ function recordCardHTML(r) {
   </div>`;
 }
 
-function setFilter(f, el) {
+window.setFilter = function(f, el) {
   APP.currentFilter = f;
   document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
   if (el) el.classList.add('active');
   renderRecords();
-}
+};
 
-function doSearch(q) {
+window.doSearch = function(q) {
   APP.searchQuery = q;
   renderRecords();
-}
+};
 
-function copyPassword(id) {
+window.copyPassword = function(id) {
   const r = APP.db.records.find(x=>x.id===id);
   if (r && r.password) {
     navigator.clipboard.writeText(r.password);
     showToast('Senha copiada para a área de transferência!', 'success');
   }
-}
+};
 
 // ─── CONFIGURAÇÕES AUXILIARES ───
 function loadSettingsUI() {
@@ -1373,16 +1373,16 @@ function updateSyncIndicator() {
   }
 }
 
-function exportData() {
+window.exportData = function() {
   if(!APP.db) return;
   const blob = new Blob([JSON.stringify(APP.db, null, 2)], {type: 'application/json'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = 'backup_seguro.json';
   a.click();
-}
+};
 
-function importData(e) {
+window.importData = function(e) {
   const file = e.target.files[0];
   if (!file) return;
   const reader = new FileReader();
@@ -1403,23 +1403,24 @@ function importData(e) {
     } catch(err) { showToast('Arquivo de importação inválido.', 'error'); }
   };
   reader.readAsText(file);
-}
+};
 
-function confirmClearData() {
+window.confirmClearData = function() {
   if (confirm("Confirma a eliminação de todos os dados locais do PWA?")) {
     localStorage.clear();
     location.reload();
   }
-}
+};
 
 // ─── UTILITÁRIOS ───
 function escHtml(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-function togglePwd(id, btn) {
+
+window.togglePwd = function(id, btn) {
   const inp = document.getElementById(id);
   if (!inp) return;
   if (inp.type === 'password') { inp.type = 'text'; if(btn) btn.textContent = '🙈'; }
   else { inp.type = 'password'; if(btn) btn.textContent = '👁'; }
-}
+};
 
 let toastTimer;
 function showToast(msg, type='info') {
