@@ -382,7 +382,7 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
 
 const APP = {
   name: 'PWARRUDA V2',
-  build: '08', // Incrementado sequencialmente para controle rigoroso de versão
+  build: '09', // Incrementado sequencialmente para controle rigoroso de versão
   get fullName(){ return `${this.name} Build ${this.build}` },
   encKey: null,
   db: null,
@@ -660,7 +660,7 @@ async function alterarSenhaMestre() {
     document.getElementById('change-pwd-new').value = '';
     document.getElementById('change-pwd-confirm').value = '';
 
-    showToast('Senha master e arquivos atualizados com sucesso!', 'success');
+    showToast('Senha master e arquivos updated com sucesso!', 'success');
   } catch (err) {
     console.error(err);
     showToast('Erro ao processar a alteração de senha.', 'error');
@@ -684,7 +684,8 @@ async function doLogin() {
     localStorage.setItem(ADMIN_PASS_HASH_KEY, storedHash);
   }
 
-  if (user !== storedUser) { errEl.textContent = 'Usuário inválido.'; return; }
+  // Validação insensível a maiúsculas e minúsculas (case-insensitive)
+  if (user.toLowerCase() !== storedUser.toLowerCase()) { errEl.textContent = 'Usuário inválido.'; return; }
 
   const inputHash = await Crypto.hashPassword(pass);
   if (inputHash !== storedHash) { errEl.textContent = 'Senha incorreta.'; return; }
@@ -799,7 +800,7 @@ async function salvarFormulario() {
       APP.db.records[idx].password = password;
       APP.db.records[idx].type = type;
       APP.db.records[idx].updatedAt = Date.now();
-      showToast('Registro atualizado com sucesso!', 'success');
+      showToast('Registro updated com sucesso!', 'success');
     }
   } else {
     const newRecord = {
@@ -853,7 +854,7 @@ function renderDashboard() {
 
   const recent = [...records].sort((a,b)=>(b.updatedAt||b.createdAt)-(a.updatedAt||a.createdAt)).slice(0,5);
   const rl = document.getElementById('recent-list');
-  rl.innerHTML = recent.length ? recent.map(r=>recordCardHTML(r)).join('') : '<div class="empty-state"><div class="empty-text">Nenhum registro encontrado.</div></div>';
+  rl.innerHTML = recent.length ? recent.map(r=>recordCardHTML(r)).join('') : '<div class="empty-state"><div class="empty-text">Nenhum arquivo encontrado.</div></div>';
 }
 
 function getFilteredRecords() {
