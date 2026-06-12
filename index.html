@@ -185,7 +185,7 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
   <div id="topbar" class="hidden">
     <span class="topbar-logo">🔐 PWA</span>
     <input type="search" class="topbar-search" id="search-input" placeholder="Buscar..." oninput="doSearch(this.value)">
-    <span class="sync-status material-symbols-outlined" id="sync-indicator" title="Sincronização local ativa">sync_saved_locally</span>
+    <span class="sync-status material-symbols-outlined" id="sync-indicator" title="Sincronização local activa">sync_saved_locally</span>
     <button class="btn btn-icon btn-secondary" onclick="showPage('settings')" title="Configurações">
       <span class="material-symbols-outlined">settings</span>
     </button>
@@ -382,7 +382,7 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
 
 const APP = {
   name: 'PWARRUDA V2',
-  build: '09', // Incrementado sequencialmente para controle rigoroso de versão
+  build: '08', // Revertido para o identificador estável anterior
   get fullName(){ return `${this.name} Build ${this.build}` },
   encKey: null,
   db: null,
@@ -660,7 +660,7 @@ async function alterarSenhaMestre() {
     document.getElementById('change-pwd-new').value = '';
     document.getElementById('change-pwd-confirm').value = '';
 
-    showToast('Senha master e arquivos updated com sucesso!', 'success');
+    showToast('Senha master e arquivos atualizados com sucesso!', 'success');
   } catch (err) {
     console.error(err);
     showToast('Erro ao processar a alteração de senha.', 'error');
@@ -684,8 +684,8 @@ async function doLogin() {
     localStorage.setItem(ADMIN_PASS_HASH_KEY, storedHash);
   }
 
-  // Validação insensível a maiúsculas e minúsculas (case-insensitive)
-  if (user.toLowerCase() !== storedUser.toLowerCase()) { errEl.textContent = 'Usuário inválido.'; return; }
+  // Validação estrita padrão (Case-Sensitive) restaurada
+  if (user !== storedUser) { errEl.textContent = 'Usuário inválido.'; return; }
 
   const inputHash = await Crypto.hashPassword(pass);
   if (inputHash !== storedHash) { errEl.textContent = 'Senha incorreta.'; return; }
@@ -800,7 +800,7 @@ async function salvarFormulario() {
       APP.db.records[idx].password = password;
       APP.db.records[idx].type = type;
       APP.db.records[idx].updatedAt = Date.now();
-      showToast('Registro updated com sucesso!', 'success');
+      showToast('Registro atualizado com sucesso!', 'success');
     }
   } else {
     const newRecord = {
