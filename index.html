@@ -242,19 +242,46 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
         <div style="display:grid; grid-template-columns: 80px 1fr; gap:0.75rem; margin-bottom:0.75rem">
           <div class="form-group" style="margin-bottom:0">
             <label>Ícone</label>
+            <!-- Componente de seleção expandido com suporte a novos contextos pertinentes -->
             <select id="new-cat-icon" style="text-align:center; font-size:1.1rem; padding:.65rem 0.5rem">
-              <option value="🔑">🔑</option>
-              <option value="🏦">🏦</option>
-              <option value="🌐">🌐</option>
-              <option value="📁">📁</option>
-              <option value="🚀">🚀</option>
-              <option value="🎮">🎮</option>
-              <option value="🛒">🛒</option>
-              <option value="📧">📧</option>
-              <option value="🔒">🔒</option>
-              <option value="📝">📝</option>
-              <option value="🛠️">🛠️</option>
-              <option value="🎨">🎨</option>
+              <optgroup label="Segurança & Padrão">
+                <option value="🔑">🔑 Chave</option>
+                <option value="🔒">🔒 Cadeado</option>
+                <option value="📁">📁 Pasta</option>
+                <option value="📝">📝 Notas</option>
+              </optgroup>
+              <optgroup label="Mídias Sociais & Comunicação">
+                <option value="📱">📱 Celular / Social</option>
+                <option value="💬">💬 Mensagens / Chat</option>
+                <option value="📧">📧 E-mail</option>
+                <option value="🌐">🌐 Web / Rede</option>
+                <option value="🔔">🔔 Alertas</option>
+              </optgroup>
+              <optgroup label="Música & Entretenimento">
+                <option value="🎵">🎵 Música</option>
+                <option value="🎧">🎧 Fones de Ouvido</option>
+                <option value="🎬">🎬 Filmes / Vídeo</option>
+                <option value="🎮">🎮 Jogos</option>
+              </optgroup>
+              <optgroup label="Finanças & Compras">
+                <option value="🏦">🏦 Banco</option>
+                <option value="💳">💳 Cartão de Crédito</option>
+                <option value="💰">💰 Dinheiro</option>
+                <option value="🛒">🛒 Carrinho de Compras</option>
+                <option value="🏷️">🏷️ Cupons / Promoções</option>
+              </optgroup>
+              <optgroup label="Produtividade & Trabalho">
+                <option value="📅">📅 Calendário</option>
+                <option value="📊">📊 Relatórios / Métricas</option>
+                <option value="🛠️">🛠️ Ferramentas / Suporte</option>
+                <option value="🚀">🚀 Projetos</option>
+              </optgroup>
+              <optgroup label="Estilo de Vida & Outros">
+                <option value="❤️">❤️ Saúde / Favoritos</option>
+                <option value="✈️">✈️ Viagens / Transporte</option>
+                <option value="🏠">🏠 Residencial / Home</option>
+                <option value="🎨">🎨 Design / Arte</option>
+              </optgroup>
             </select>
           </div>
           <div class="form-group" style="margin-bottom:0">
@@ -458,7 +485,7 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
 
 const APP = {
   name: 'PWARRUDA V2',
-  build: '13',
+  build: '14',
   get fullName(){ return `${this.name} Build ${this.build}` },
   encKey: null,
   db: null,
@@ -893,7 +920,7 @@ async function processarFormularioCategoria() {
     if (cat) {
       cat.label = nameVal;
       cat.icon = iconVal;
-      showToast('Categoria atualizada com sucesso!', 'success');
+      showToast('Categoria updated.', 'success');
     }
     cancelarEdicaoCategoria();
   } else {
@@ -998,7 +1025,7 @@ function toggleBatchMode(isBatch) {
   }
 }
 
-async function executarImportacaoEmLote() {
+async function ejecutarImportacaoEmLote() {
   const textInput = document.getElementById('batch-text-input').value;
   if (!textInput.trim()) {
     showToast('Insira dados de texto válidos para processamento.', 'error');
