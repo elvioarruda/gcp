@@ -66,7 +66,7 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
 .btn-full{width:100%}
 .btn-sm{padding:.4rem .6rem;font-size:.8rem;border-radius:6px}
 .btn-icon{width:36px;height:36px;padding:0;border-radius:var(--radius-sm);flex-shrink:0}
-.version-badge{font-size:.75rem;color:var(--text3);letter-spacing:.1em;text-align:center;font-weight:600}
+.version-badge{font-size:.75rem;color:var(--text3);letter-spacing:.1em;text-align:center;font-weight:600;margin-top:0.5rem}
 .error-msg{color:var(--danger);font-size:.8rem;margin-top:.4rem}
 
 /* ─── TOPBAR ─── */
@@ -223,7 +223,7 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
       <div id="login-error" class="error-msg" style="margin-bottom:.75rem"></div>
       <button class="btn btn-primary btn-full" onclick="doLogin()">Entrar</button>
     </div>
-    <div class="version-badge" id="login-version"></div>
+    <div class="version-badge" id="login-version">PWARRUDA V2 Build 17</div>
   </div>
 
   <div id="topbar" class="hidden">
@@ -409,7 +409,7 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
       <div class="settings-section">
         <div class="settings-title">Informações</div>
         <div class="settings-row">
-          <div><div class="settings-label">Versão</div><div class="settings-sublabel" id="settings-version"></div></div>
+          <div><div class="settings-label">Versão</div><div class="settings-sublabel" id="settings-version">PWARRUDA V2 Build 17</div></div>
         </div>
       </div>
 
@@ -499,7 +499,7 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
 
 const APP = {
   name: 'PWARRUDA V2',
-  build: '16',
+  build: '17',
   get fullName(){ return `${this.name} Build ${this.build}` },
   encKey: null,
   db: null,
@@ -526,13 +526,9 @@ const DEFAULT_CATEGORIES = [
   { id: 'other', label: 'Outro', icon: '📁' }
 ];
 
-document.addEventListener("DOMContentLoaded", function() {
+window.addEventListener("DOMContentLoaded", function() {
   updateVersionDisplay();
 });
-
-window.onload = function() {
-  updateVersionDisplay();
-};
 
 function updateVersionDisplay() {
   const v = `${APP.name} Build ${APP.build}`;
@@ -623,8 +619,10 @@ function saveSetting(k, v) { Store.saveSetting(k, v); }
 async function verificarPermissaoArquivo(fileHandle, readWrite) {
   const options = {};
   if (readWrite) options.mode = 'readwrite';
-  if ((await fileHandle.queryPermission(options)) === 'granted') return true;
-  if ((await fileHandle.requestPermission(options)) === 'granted') return true;
+  try {
+    if ((await fileHandle.queryPermission(options)) === 'granted') return true;
+    if ((await fileHandle.requestPermission(options)) === 'granted') return true;
+  } catch(e) { console.warn("File System Access API permission prompt skipped."); }
   return false;
 }
 
@@ -723,32 +721,39 @@ function atualizarUIArquivo() {
 // ─── INDEXEDDB REFERÊNCIA ARQUIVO ───
 function salvarReferenciaArquivo(handle) {
   return new Promise((resolve) => {
-    const request = indexedDB.open("pwarruda_local_storage", 1);
-    request.onupgradeneeded = (e) => e.target.result.createObjectStore("handles");
-    request.onsuccess = (e) => {
-      const tx = e.target.result.transaction("handles", "readwrite");
-      tx.objectStore("handles").put(handle, "ultimo_handle");
-      tx.oncomplete = () => resolve();
-    };
+    try {
+      const request = indexedDB.open("pwarruda_local_storage", 1);
+      request.onupgradeneeded = (e) => e.target.result.createObjectStore("handles");
+      request.onsuccess = (e) => {
+        const tx = e.target.result.transaction("handles", "readwrite");
+        tx.objectStore("handles").put(handle, "ultimo_handle");
+        tx.oncomplete = () => resolve();
+      };
+      request.onerror = () => resolve();
+    } catch(err) { resolve(); }
   });
 }
 
 function carregarReferenciaArquivoSalva() {
   return new Promise((resolve) => {
-    const request = indexedDB.open("pwarruda_local_storage", 1);
-    request.onupgradeneeded = (e) => e.target.result.createObjectStore("handles");
-    request.onsuccess = (e) => {
-      const tx = e.target.result.transaction("handles", "readonly");
-      const getReq = tx.objectStore("handles").get("ultimo_handle");
-      getReq.onsuccess = () => {
-        if (getReq.result) {
-          APP.fileHandle = getReq.result;
-          APP.fileName = getReq.result.name;
-          atualizarUIArquivo();
-        }
-        resolve();
+    try {
+      const request = indexedDB.open("pwarruda_local_storage", 1);
+      request.onupgradeneeded = (e) => e.target.result.createObjectStore("handles");
+      request.onsuccess = (e) => {
+        const tx = e.target.result.transaction("handles", "readonly");
+        const getReq = tx.objectStore("handles").get("ultimo_handle");
+        getReq.onsuccess = () => {
+          if (getReq.result) {
+            APP.fileHandle = getReq.result;
+            APP.fileName = getReq.result.name;
+            atualizarUIArquivo();
+          }
+          resolve();
+        };
+        getReq.onerror = () => resolve();
       };
-    };
+      request.onerror = () => resolve();
+    } catch(err) { resolve(); }
   });
 }
 
@@ -795,7 +800,7 @@ async function alterarSenhaMestre() {
     document.getElementById('change-pwd-new').value = '';
     document.getElementById('change-pwd-confirm').value = '';
 
-    showToast('Senha master e arquivos updated.', 'success');
+    showToast('Senha master e arquivos atualizados.', 'success');
   } catch (err) {
     console.error(err);
     showToast('Erro ao processar a alteração de senha.', 'error');
@@ -807,29 +812,39 @@ async function doLogin() {
   const user = document.getElementById('login-user').value.trim();
   const pass = document.getElementById('login-pass').value;
   const errEl = document.getElementById('login-error');
-  errEl.textContent = '';
+  if (errEl) errEl.textContent = '';
 
-  let storedUser = localStorage.getItem(ADMIN_USER_KEY);
-  let storedHash = localStorage.getItem(ADMIN_PASS_HASH_KEY);
-
-  if (!storedUser || !storedHash) {
-    storedUser = user;
-    storedHash = await Crypto.hashPassword(pass);
-    localStorage.setItem(ADMIN_USER_KEY, storedUser);
-    localStorage.setItem(ADMIN_PASS_HASH_KEY, storedHash);
+  if (!user || !pass) {
+    if (errEl) errEl.textContent = 'Informe o usuário e a senha.';
+    return;
   }
 
-  if (user !== storedUser) { errEl.textContent = 'Usuário inválido.'; return; }
+  try {
+    let storedUser = localStorage.getItem(ADMIN_USER_KEY);
+    let storedHash = localStorage.getItem(ADMIN_PASS_HASH_KEY);
 
-  const inputHash = await Crypto.hashPassword(pass);
-  if (inputHash !== storedHash) { errEl.textContent = 'Senha incorreta.'; return; }
+    if (!storedUser || !storedHash) {
+      storedUser = user;
+      storedHash = await Crypto.hashPassword(pass);
+      localStorage.setItem(ADMIN_USER_KEY, storedUser);
+      localStorage.setItem(ADMIN_PASS_HASH_KEY, storedHash);
+    }
 
-  APP.encKey = await Crypto.deriveKey(pass, 'pwarruda_aes256_' + user);
-  Store.loadSettings();
-  await Store.loadDB();
+    if (user !== storedUser) { if (errEl) errEl.textContent = 'Usuário inválido.'; return; }
 
-  sessionStorage.setItem(SESSION_KEY, JSON.stringify({ user, ts: Date.now() }));
-  await initApp();
+    const inputHash = await Crypto.hashPassword(pass);
+    if (inputHash !== storedHash) { if (errEl) errEl.textContent = 'Senha incorreta.'; return; }
+
+    APP.encKey = await Crypto.deriveKey(pass, 'pwarruda_aes256_' + user);
+    Store.loadSettings();
+    await Store.loadDB();
+
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify({ user, ts: Date.now() }));
+    await initApp();
+  } catch(e) {
+    console.error(e);
+    if (errEl) errEl.textContent = 'Erro no processamento criptográfico.';
+  }
 }
 
 async function doLogout() {
@@ -934,7 +949,7 @@ async function processarFormularioCategoria() {
     if (cat) {
       cat.label = nameVal;
       cat.icon = iconVal;
-      showToast('Categoria updated.', 'success');
+      showToast('Categoria atualizada.', 'success');
     }
     cancelarEdicaoCategoria();
   } else {
@@ -1335,7 +1350,7 @@ function copyPassword(id) {
   const r = APP.db.records.find(x=>x.id===id);
   if (r && r.password) {
     navigator.clipboard.writeText(r.password);
-    showToast('Senha copiada para a área de transferência!', 'success');
+    showToast('Senha copied para a área de transferência!', 'success');
   }
 }
 
