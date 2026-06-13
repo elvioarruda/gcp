@@ -206,7 +206,7 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
     <div class="login-card">
       <div class="logo-area">
         <div class="logo-icon">🔐</div>
-        <div class="logo-title">PWARRUVA V2</div>
+        <div class="logo-title">PWARRUDA V2</div>
         <div class="logo-sub">Controle de Arquivos Locais com Sincronização Transparente</div>
       </div>
       <div class="form-group">
@@ -223,7 +223,7 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
       <div id="login-error" class="error-msg" style="margin-bottom:.75rem"></div>
       <button class="btn btn-primary btn-full" onclick="doLogin()">Entrar</button>
     </div>
-    <div class="version-badge" id="login-version">PWARRUDA V2 Build 16</div>
+    <div class="version-badge" id="login-version">PWARRUDA V2 Build 22</div>
   </div>
 
   <div id="topbar" class="hidden">
@@ -561,7 +561,6 @@ function selectMatrixIcon(icon) {
   if (matrix) matrix.classList.add('hidden');
 }
 
-// Fechar a matriz se clicar fora dela
 document.addEventListener('click', function(e) {
   const matrix = document.getElementById('icon-matrix-container');
   const btn = document.getElementById('btn-icon-selector');
@@ -980,7 +979,7 @@ async function processarFormularioCategoria() {
     if (cat) {
       cat.label = nameVal;
       cat.icon = iconVal;
-      showToast('Categoria atualizada.', 'success');
+      showToast('Categoria updated.', 'success');
     }
     cancelarEdicaoCategoria();
   } else {
@@ -1085,7 +1084,7 @@ function toggleBatchMode(isBatch) {
   }
 }
 
-async function ejecutarImportacaoEmLote() {
+async function executarImportacaoEmLote() {
   const textInput = document.getElementById('batch-text-input').value;
   if (!textInput.trim()) {
     showToast('Insira dados de texto válidos para processamento.', 'error');
@@ -1129,7 +1128,7 @@ async function ejecutarImportacaoEmLote() {
 
   if (contagemSucesso > 0) {
     await Store.saveDB();
-    showToast(`${contagemSucesso} arquivos importados com sucesso!`, 'success');
+    showToast(`${contagemSucesso} registros importados com sucesso!`, 'success');
     
     document.getElementById('batch-text-input').value = '';
     document.getElementById('chk-batch-mode').checked = false;
@@ -1478,15 +1477,32 @@ window.onload = async () => {
         let storedUser = localStorage.getItem(ADMIN_USER_KEY);
         if (session.user === storedUser) {
           showToast('Sessão restaurada automaticamente.', 'info');
+          // Correção do fluxo de restauração automática da sessão
+          Store.loadSettings();
+          await Store.loadDB();
           
           document.getElementById('login-screen').classList.add('hidden');
-          document.getElementById('topbar').classList.add('hidden');
-          document.getElementById('main').classList.add('hidden');
-          document.getElementById('bottom-nav').classList.add('hidden');
+          document.getElementById('topbar').classList.remove('hidden');
+          document.getElementById('main').classList.remove('hidden');
+          document.getElementById('bottom-nav').classList.remove('hidden');
+
+          dinamizarElementosUI();
+          renderDashboard();
+          renderRecords();
+          loadSettingsUI();
+          renderCategoryManager();
+          setupAutoLock();
+
+          await carregarReferenciaArquivoSalva();
+          if (APP.fileHandle) {
+            await lerDadosDoArquivoVinculado();
+          }
           return;
         }
       }
-    } catch(e) {}
+    } catch(e) {
+      console.error("Erro ao tentar restaurar a sessão:", e);
+    }
   }
 };
 </script>
