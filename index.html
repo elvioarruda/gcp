@@ -540,7 +540,7 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
 
 const APP = {
   name: 'PWARRUDA V2',
-  build: '15',
+  build: '25',
   get fullName(){ return `${this.name} Build ${this.build}` },
   encKey: null,
   db: null,
@@ -760,7 +760,7 @@ async function lerDadosDoArquivoVinculado() {
       }
       APP.db.categories.forEach(c => { if (!c.icon) c.icon = '📁'; });
       localStorage.setItem(DB_KEY, textoCriptografado);
-      showToast('Dados synchronized.', 'success');
+      showToast('Dados sincronizados.', 'success');
       dinamizarElementosUI();
       refreshCurrentPage();
     }
@@ -870,7 +870,7 @@ async function alterarSenhaMestre() {
     document.getElementById('change-pwd-new').value = '';
     document.getElementById('change-pwd-confirm').value = '';
 
-    showToast('Senha master e arquivos updated.', 'success');
+    showToast('Senha master e arquivos atualizados.', 'success');
   } catch (err) {
     console.error(err);
     showToast('Erro ao processar a alteração de senha.', 'error');
@@ -946,19 +946,26 @@ async function initApp() {
   }
 }
 
-// ─── GERENCIAMENTO DINÂMICO DE CATEGORIAS ───
+// ─── GERENCIAMENTO DINÂMICO DE CATEGORIAS (COM ORDENAÇÃO A-Z) ───
 function dinamizarElementosUI() {
   if (!APP.db || !APP.db.categories) return;
 
+  // Cópia das categorias filtrada e ordenada alfabeticamente de A-Z pelo label
+  const categoriasOrdenadas = [...APP.db.categories].sort((a, b) => 
+    (a.label || '').localeCompare(b.label || '', 'pt-BR')
+  );
+
   const selectForm = document.getElementById('form-type');
   if (selectForm) {
-    selectForm.innerHTML = APP.db.categories.map(c => `<option value="${c.id}">${c.icon ? c.icon + ' ' : ''}${escHtml(c.label)}</option>`).join('');
+    selectForm.innerHTML = categoriasOrdenadas.map(c => 
+      `<option value="${c.id}">${c.icon ? c.icon + ' ' : ''}${escHtml(c.label)}</option>`
+    ).join('');
   }
 
   const filterRow = document.getElementById('filter-row');
   if (filterRow) {
     let htmlChips = `<button class="filter-chip ${APP.currentFilter === 'all' ? 'active' : ''}" onclick="setFilter('all',this)">Todos</button>`;
-    htmlChips += APP.db.categories.map(c => {
+    htmlChips += categoriasOrdenadas.map(c => {
       const displayLabel = c.icon ? `${c.icon} ${c.label}` : c.label;
       return `<button class="filter-chip ${APP.currentFilter === c.id ? 'active' : ''}" onclick="setFilter('${c.id}',this)">${escHtml(displayLabel)}</button>`;
     }).join('');
@@ -975,7 +982,12 @@ function renderCategoryManager() {
     return;
   }
 
-  managerList.innerHTML = APP.db.categories.map(c => `
+  // Ordenação aplicada também na lista de administração interna para consistência visual
+  const categoriasOrdenadas = [...APP.db.categories].sort((a, b) => 
+    (a.label || '').localeCompare(b.label || '', 'pt-BR')
+  );
+
+  managerList.innerHTML = categoriasOrdenadas.map(c => `
     <div class="category-manager-item">
       <span class="category-manager-name">
          <span style="font-size:1.2rem; margin-right:4px">${escHtml(c.icon || '📁')}</span> 
@@ -1016,7 +1028,7 @@ async function processarFormularioCategoria() {
     const id = 'cat_' + Date.now() + Math.random().toString(36).substring(2, 5);
     APP.db.categories.push({ id, label: nameVal, icon: iconVal });
     inputName.value = '';
-    setMatrixSelectedIcon('🔑'); // Reseta para o primeiro ícone padrão
+    setMatrixSelectedIcon('🔑'); 
     showToast('Categoria adicionada com sucesso!', 'success');
   }
   
@@ -1114,7 +1126,7 @@ function toggleBatchMode(isBatch) {
   }
 }
 
-async function ejecutarImportacaoEmLote() {
+async function executarImportacaoEmLote() {
   const textInput = document.getElementById('batch-text-input').value;
   if (!textInput.trim()) {
     showToast('Insira dados de texto válidos para processamento.', 'error');
@@ -1249,7 +1261,7 @@ async function salvarFormulario() {
       APP.db.records[idx].type = type;
       APP.db.records[idx].notes = notes;
       APP.db.records[idx].updatedAt = Date.now();
-      showToast('Registro atualizado com sucesso!', 'success');
+      showToast('Registro updated com sucesso!', 'success');
     }
   } else {
     const newRecord = {
@@ -1284,7 +1296,7 @@ async function excluirRegistro(id) {
   }
 }
 
-// ─── CLASSIFICAÇÃO / ORDENAÇÃO ───
+// ─── CLASSIFICAÇÃO / ORDENAÇÃO DE REGISTROS ───
 function toggleSort() {
   APP.sortOrder = (APP.sortOrder === 'asc') ? 'desc' : 'asc';
   const icon = document.getElementById('sort-icon');
