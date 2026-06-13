@@ -66,7 +66,7 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
 .btn-full{width:100%}
 .btn-sm{padding:.4rem .6rem;font-size:.8rem;border-radius:6px}
 .btn-icon{width:36px;height:36px;padding:0;border-radius:var(--radius-sm);flex-shrink:0}
-.version-badge{font-size:.75rem;color:var(--text3);letter-spacing:.1em;text-align:center;font-weight:600;margin-top:0.5rem}
+.version-badge{font-size:.75rem;color:var(--text3);letter-spacing:.1em;text-align:center;font-weight:600}
 .error-msg{color:var(--danger);font-size:.8rem;margin-top:.4rem}
 
 /* ─── TOPBAR ─── */
@@ -197,6 +197,41 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
 .drive-info{flex:1}
 .drive-name{font-size:.85rem;font-weight:600}
 .drive-sub{font-size:.75rem;color:var(--text3);margin-top:.2rem}
+
+/* ─── CUSTOM ICON SELECTION MATRIX (5 COLUMNS) ─── */
+.icon-selection-matrix {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px;
+  max-height: 180px;
+  overflow-y: auto;
+}
+.matrix-option-cell {
+  background: var(--surface);
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 8px 0;
+  font-size: 1.3rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.matrix-option-cell:hover {
+  background: var(--surface2);
+  border-color: var(--primary-light);
+}
+.matrix-option-cell.active-selected {
+  background: var(--primary);
+  border-color: var(--primary-light);
+  box-shadow: 0 0 10px rgba(79,70,229,0.4);
+  transform: scale(1.03);
+}
 </style>
 </head>
 <body>
@@ -223,7 +258,7 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
       <div id="login-error" class="error-msg" style="margin-bottom:.75rem"></div>
       <button class="btn btn-primary btn-full" onclick="doLogin()">Entrar</button>
     </div>
-    <div class="version-badge" id="login-version">PWARRUDA V2 Build 16</div>
+    <div class="version-badge" id="login-version"></div>
   </div>
 
   <div id="topbar" class="hidden">
@@ -269,53 +304,46 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
       
       <div style="background:var(--surface); border:1px solid var(--border); padding:1.25rem; border-radius:var(--radius); margin-bottom:1.5rem">
         <input type="hidden" id="edit-cat-id">
-        
-        <div style="display:grid; grid-template-columns: 90px 1fr; gap:0.75rem; margin-bottom:0.75rem">
-          <div class="form-group" style="margin-bottom:0; position:relative;">
-            <label>Ícone</label>
-            <button type="button" id="btn-icon-selector" onclick="toggleIconMatrix(event)" style="width:100%; height:44px; background:var(--bg3); border:1px solid var(--border); border-radius:var(--radius-sm); color:var(--text); font-size:1.4rem; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.2s">📁</button>
-            
-            <div id="icon-matrix-container" class="hidden" style="position:absolute; top:70px; left:0; z-index:1000; background:var(--surface2); border:1px solid var(--primary); border-radius:var(--radius-sm); padding:8px; width:240px; box-shadow:var(--shadow), var(--glow)">
-              <div style="display:grid; grid-template-columns: repeat(5, 1fr); gap:6px; text-align:center;">
-                <div style="font-size:1.3rem; padding:6px; cursor:pointer; border-radius:4px; transition:background 0.1s" onclick="selectMatrixIcon('🔑')">🔑</div>
-                <div style="font-size:1.3rem; padding:6px; cursor:pointer; border-radius:4px; transition:background 0.1s" onclick="selectMatrixIcon('🔒')">🔒</div>
-                <div style="font-size:1.3rem; padding:6px; cursor:pointer; border-radius:4px; transition:background 0.1s" onclick="selectMatrixIcon('📁')">📁</div>
-                <div style="font-size:1.3rem; padding:6px; cursor:pointer; border-radius:4px; transition:background 0.1s" onclick="selectMatrixIcon('📝')">📝</div>
-                <div style="font-size:1.3rem; padding:6px; cursor:pointer; border-radius:4px; transition:background 0.1s" onclick="selectMatrixIcon('📱')">📱</div>
-                <div style="font-size:1.3rem; padding:6px; cursor:pointer; border-radius:4px; transition:background 0.1s" onclick="selectMatrixIcon('💬')">💬</div>
-                <div style="font-size:1.3rem; padding:6px; cursor:pointer; border-radius:4px; transition:background 0.1s" onclick="selectMatrixIcon('📧')">📧</div>
-                <div style="font-size:1.3rem; padding:6px; cursor:pointer; border-radius:4px; transition:background 0.1s" onclick="selectMatrixIcon('🌐')">🌐</div>
-                <div style="font-size:1.3rem; padding:6px; cursor:pointer; border-radius:4px; transition:background 0.1s" onclick="selectMatrixIcon('🔔')">🔔</div>
-                <div style="font-size:1.3rem; padding:6px; cursor:pointer; border-radius:4px; transition:background 0.1s" onclick="selectMatrixIcon('🎵')">🎵</div>
-                <div style="font-size:1.3rem; padding:6px; cursor:pointer; border-radius:4px; transition:background 0.1s" onclick="selectMatrixIcon('🎧')">🎧</div>
-                <div style="font-size:1.3rem; padding:6px; cursor:pointer; border-radius:4px; transition:background 0.1s" onclick="selectMatrixIcon('🎬')">🎬</div>
-                <div style="font-size:1.3rem; padding:6px; cursor:pointer; border-radius:4px; transition:background 0.1s" onclick="selectMatrixIcon('🎮')">🎮</div>
-                <div style="font-size:1.3rem; padding:6px; cursor:pointer; border-radius:4px; transition:background 0.1s" onclick="selectMatrixIcon('🏦')">🏦</div>
-                <div style="font-size:1.3rem; padding:6px; cursor:pointer; border-radius:4px; transition:background 0.1s" onclick="selectMatrixIcon('💳')">💳</div>
-                <div style="font-size:1.3rem; padding:6px; cursor:pointer; border-radius:4px; transition:background 0.1s" onclick="selectMatrixIcon('💰')">💰</div>
-                <div style="font-size:1.3rem; padding:6px; cursor:pointer; border-radius:4px; transition:background 0.1s" onclick="selectMatrixIcon('🛒')">🛒</div>
-                <div style="font-size:1.3rem; padding:6px; cursor:pointer; border-radius:4px; transition:background 0.1s" onclick="selectMatrixIcon('🏷️')">🏷️</div>
-                <div style="font-size:1.3rem; padding:6px; cursor:pointer; border-radius:4px; transition:background 0.1s" onclick="selectMatrixIcon('📅')">📅</div>
-                <div style="font-size:1.3rem; padding:6px; cursor:pointer; border-radius:4px; transition:background 0.1s" onclick="selectMatrixIcon('📊')">📊</div>
-                <div style="font-size:1.3rem; padding:6px; cursor:pointer; border-radius:4px; transition:background 0.1s" onclick="selectMatrixIcon('🛠️')">🛠️</div>
-                <div style="font-size:1.3rem; padding:6px; cursor:pointer; border-radius:4px; transition:background 0.1s" onclick="selectMatrixIcon('🚀')">🚀</div>
-                <div style="font-size:1.3rem; padding:6px; cursor:pointer; border-radius:4px; transition:background 0.1s" onclick="selectMatrixIcon('❤️')">❤️</div>
-                <div style="font-size:1.3rem; padding:6px; cursor:pointer; border-radius:4px; transition:background 0.1s" onclick="selectMatrixIcon('✈️')">✈️</div>
-                <div style="font-size:1.3rem; padding:6px; cursor:pointer; border-radius:4px; transition:background 0.1s" onclick="selectMatrixIcon('🏠')">🏠</div>
-                <div style="font-size:1.3rem; padding:6px; cursor:pointer; border-radius:4px; transition:background 0.1s" onclick="selectMatrixIcon('🎨')">🎨</div>
-                <div style="font-size:1.3rem; padding:6px; cursor:pointer; border-radius:4px; transition:background 0.1s" onclick="selectMatrixIcon('💼')">💼</div>
-                <div style="font-size:1.3rem; padding:6px; cursor:pointer; border-radius:4px; transition:background 0.1s" onclick="selectMatrixIcon('⚙️')">⚙️</div>
-                <div style="font-size:1.3rem; padding:6px; cursor:pointer; border-radius:4px; transition:background 0.1s" onclick="selectMatrixIcon('💻')">💻</div>
-                <div style="font-size:1.3rem; padding:6px; cursor:pointer; border-radius:4px; transition:background 0.1s" onclick="selectMatrixIcon('📌')">📌</div>
-              </div>
+        <div style="display:grid; grid-template-columns: 1fr; gap:1rem; margin-bottom:0.75rem">
+          
+          <div class="form-group" style="margin-bottom:0">
+            <label>Selecione um Ícone</label>
+            <input type="hidden" id="new-cat-icon" value="🔑">
+            <div class="icon-selection-matrix" id="icon-matrix-container">
+              <div class="matrix-option-cell active-selected" data-icon="🔑">🔑</div>
+              <div class="matrix-option-cell" data-icon="🔒">🔒</div>
+              <div class="matrix-option-cell" data-icon="📁">📁</div>
+              <div class="matrix-option-cell" data-icon="📝">📝</div>
+              <div class="matrix-option-cell" data-icon="📱">📱</div>
+              <div class="matrix-option-cell" data-icon="💬">💬</div>
+              <div class="matrix-option-cell" data-icon="📧">📧</div>
+              <div class="matrix-option-cell" data-icon="🌐">🌐</div>
+              <div class="matrix-option-cell" data-icon="🔔">🔔</div>
+              <div class="matrix-option-cell" data-icon="🎵">🎵</div>
+              <div class="matrix-option-cell" data-icon="🎧">🎧</div>
+              <div class="matrix-option-cell" data-icon="🎬">🎬</div>
+              <div class="matrix-option-cell" data-icon="🎮">🎮</div>
+              <div class="matrix-option-cell" data-icon="🏦">🏦</div>
+              <div class="matrix-option-cell" data-icon="💳">💳</div>
+              <div class="matrix-option-cell" data-icon="💰">💰</div>
+              <div class="matrix-option-cell" data-icon="🛒">🛒</div>
+              <div class="matrix-option-cell" data-icon="🏷️">🏷️</div>
+              <div class="matrix-option-cell" data-icon="📅">📅</div>
+              <div class="matrix-option-cell" data-icon="📊">📊</div>
+              <div class="matrix-option-cell" data-icon="🛠️">🛠️</div>
+              <div class="matrix-option-cell" data-icon="🚀">🚀</div>
+              <div class="matrix-option-cell" data-icon="❤️">❤️</div>
+              <div class="matrix-option-cell" data-icon="✈️">✈️</div>
+              <div class="matrix-option-cell" data-icon="🏠">🏠</div>
+              <div class="matrix-option-cell" data-icon="🎨">🎨</div>
             </div>
           </div>
+
           <div class="form-group" style="margin-bottom:0">
             <label>Nome da Categoria</label>
             <input type="text" id="new-cat-name" placeholder="Ex: Trabalho, Compras">
           </div>
         </div>
-
         <div style="display:flex; gap:0.5rem; margin-top:1rem">
           <button class="btn btn-primary" style="flex:2" id="btn-cat-save" onclick="processarFormularioCategoria()">✨ Adicionar Categoria</button>
           <button class="btn btn-secondary hidden" style="flex:1" id="btn-cat-cancel" onclick="cancelarEdicaoCategoria()">Cancelar</button>
@@ -422,7 +450,7 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
       <div class="settings-section">
         <div class="settings-title">Informações</div>
         <div class="settings-row">
-          <div><div class="settings-label">Versão</div><div class="settings-sublabel" id="settings-version">PWARRUDA V2 Build 16</div></div>
+          <div><div class="settings-label">Versão</div><div class="settings-sublabel" id="settings-version"></div></div>
         </div>
       </div>
 
@@ -512,7 +540,8 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
 
 const APP = {
   name: 'PWARRUDA V2',
-  build: '16',
+  build: '15',
+  get fullName(){ return `${this.name} Build ${this.build}` },
   encKey: null,
   db: null,
   currentPage: 'home',
@@ -538,6 +567,15 @@ const DEFAULT_CATEGORIES = [
   { id: 'other', label: 'Outro', icon: '📁' }
 ];
 
+document.addEventListener("DOMContentLoaded", function() {
+  updateVersionDisplay();
+  initMatrixEvents();
+});
+
+window.onload = function() {
+  updateVersionDisplay();
+};
+
 function updateVersionDisplay() {
   const v = `${APP.name} Build ${APP.build}`;
   const loginBadge = document.getElementById('login-version');
@@ -547,27 +585,39 @@ function updateVersionDisplay() {
   if (settingsBadge) settingsBadge.textContent = v;
 }
 
-// ─── COMPONENTE SELETOR DE MATRIZ DE ÍCONES ───
-function toggleIconMatrix(event) {
-  if (event) event.stopPropagation();
-  const matrix = document.getElementById('icon-matrix-container');
-  if (matrix) matrix.classList.toggle('hidden');
+/* ─── CONTROLE JAVASCRIPT DA MATRIZ DE ÍCONES ─── */
+function initMatrixEvents() {
+  const container = document.getElementById('icon-matrix-container');
+  if (!container) return;
+
+  container.addEventListener('click', function(e) {
+    const cell = e.target.closest('.matrix-option-cell');
+    if (!cell) return;
+
+    container.querySelectorAll('.matrix-option-cell').forEach(c => {
+      c.classList.remove('active-selected');
+    });
+
+    cell.classList.add('active-selected');
+    
+    const iconValue = cell.getAttribute('data-icon');
+    document.getElementById('new-cat-icon').value = iconValue;
+  });
 }
 
-function selectMatrixIcon(icon) {
-  const btn = document.getElementById('btn-icon-selector');
-  if (btn) btn.textContent = icon;
-  const matrix = document.getElementById('icon-matrix-container');
-  if (matrix) matrix.classList.add('hidden');
-}
+function setMatrixSelectedIcon(icon) {
+  const container = document.getElementById('icon-matrix-container');
+  if (!container) return;
 
-document.addEventListener('click', function(e) {
-  const matrix = document.getElementById('icon-matrix-container');
-  const btn = document.getElementById('btn-icon-selector');
-  if (matrix && !matrix.classList.contains('hidden') && e.target !== btn && !matrix.contains(e.target)) {
-    matrix.classList.add('hidden');
-  }
-});
+  container.querySelectorAll('.matrix-option-cell').forEach(cell => {
+    if (cell.getAttribute('data-icon') === icon) {
+      cell.classList.add('active-selected');
+    } else {
+      cell.classList.remove('active-selected');
+    }
+  });
+  document.getElementById('new-cat-icon').value = icon;
+}
 
 // ─── CRYPTO ENGINE ───
 const Crypto = {
@@ -649,10 +699,8 @@ function saveSetting(k, v) { Store.saveSetting(k, v); }
 async function verificarPermissaoArquivo(fileHandle, readWrite) {
   const options = {};
   if (readWrite) options.mode = 'readwrite';
-  try {
-    if ((await fileHandle.queryPermission(options)) === 'granted') return true;
-    if ((await fileHandle.requestPermission(options)) === 'granted') return true;
-  } catch(e) { console.warn("File System Access API permission prompt skipped."); }
+  if ((await fileHandle.queryPermission(options)) === 'granted') return true;
+  if ((await fileHandle.requestPermission(options)) === 'granted') return true;
   return false;
 }
 
@@ -694,7 +742,7 @@ async function carregarArquivoExistente() {
 }
 
 async function lerDadosDoArquivoVinculado() {
-  if (!APP.fileHandle || !APP.encKey) return;
+  if (!APP.fileHandle) return;
   try {
     if (!(await verificarPermissaoArquivo(APP.fileHandle, false))) {
       showToast('Permissão de leitura negada.', 'error');
@@ -712,7 +760,7 @@ async function lerDadosDoArquivoVinculado() {
       }
       APP.db.categories.forEach(c => { if (!c.icon) c.icon = '📁'; });
       localStorage.setItem(DB_KEY, textoCriptografado);
-      showToast('Dados sincronizados com o arquivo local!', 'success');
+      showToast('Dados synchronized.', 'success');
       dinamizarElementosUI();
       refreshCurrentPage();
     }
@@ -723,7 +771,7 @@ async function lerDadosDoArquivoVinculado() {
 }
 
 async function gravarDadosNoArquivoVinculado() {
-  if (!APP.fileHandle || !APP.db || !APP.encKey) return;
+  if (!APP.fileHandle || !APP.db) return;
   try {
     if (!(await verificarPermissaoArquivo(APP.fileHandle, true))) return;
     const textoCriptografado = await Crypto.encrypt(APP.db, APP.encKey);
@@ -751,39 +799,32 @@ function atualizarUIArquivo() {
 // ─── INDEXEDDB REFERÊNCIA ARQUIVO ───
 function salvarReferenciaArquivo(handle) {
   return new Promise((resolve) => {
-    try {
-      const request = indexedDB.open("pwarruda_local_storage", 1);
-      request.onupgradeneeded = (e) => e.target.result.createObjectStore("handles");
-      request.onsuccess = (e) => {
-        const tx = e.target.result.transaction("handles", "readwrite");
-        tx.objectStore("handles").put(handle, "ultimo_handle");
-        tx.oncomplete = () => resolve();
-      };
-      request.onerror = () => resolve();
-    } catch(err) { resolve(); }
+    const request = indexedDB.open("pwarruda_local_storage", 1);
+    request.onupgradeneeded = (e) => e.target.result.createObjectStore("handles");
+    request.onsuccess = (e) => {
+      const tx = e.target.result.transaction("handles", "readwrite");
+      tx.objectStore("handles").put(handle, "ultimo_handle");
+      tx.oncomplete = () => resolve();
+    };
   });
 }
 
 function carregarReferenciaArquivoSalva() {
   return new Promise((resolve) => {
-    try {
-      const request = indexedDB.open("pwarruda_local_storage", 1);
-      request.onupgradeneeded = (e) => e.target.result.createObjectStore("handles");
-      request.onsuccess = (e) => {
-        const tx = e.target.result.transaction("handles", "readonly");
-        const getReq = tx.objectStore("handles").get("ultimo_handle");
-        getReq.onsuccess = () => {
-          if (getReq.result) {
-            APP.fileHandle = getReq.result;
-            APP.fileName = getReq.result.name;
-            atualizarUIArquivo();
-          }
-          resolve();
-        };
-        getReq.onerror = () => resolve();
+    const request = indexedDB.open("pwarruda_local_storage", 1);
+    request.onupgradeneeded = (e) => e.target.result.createObjectStore("handles");
+    request.onsuccess = (e) => {
+      const tx = e.target.result.transaction("handles", "readonly");
+      const getReq = tx.objectStore("handles").get("ultimo_handle");
+      getReq.onsuccess = () => {
+        if (getReq.result) {
+          APP.fileHandle = getReq.result;
+          APP.fileName = getReq.result.name;
+          atualizarUIArquivo();
+        }
+        resolve();
       };
-      request.onerror = () => resolve();
-    } catch(err) { resolve(); }
+    };
   });
 }
 
@@ -791,13 +832,13 @@ function carregarReferenciaArquivoSalva() {
 async function alterarSenhaMestre() {
   const senhaAtual = document.getElementById('change-pwd-current').value;
   const novaSenha = document.getElementById('change-pwd-new').value;
-  const confirmaçãoSenha = document.getElementById('change-pwd-confirm').value;
+  const confirmacaoSenha = document.getElementById('change-pwd-confirm').value;
 
-  if (!senhaAtual || !novaSenha || !confirmaçãoSenha) {
+  if (!senhaAtual || !novaSenha || !confirmacaoSenha) {
     showToast('Preencha todos os campos para realizar a alteração.', 'error');
     return;
   }
-  if (novaSenha !== confirmaçãoSenha) {
+  if (novaSenha !== confirmacaoSenha) {
     showToast('A nova senha e a confirmação não coincidem.', 'error');
     return;
   }
@@ -823,14 +864,13 @@ async function alterarSenhaMestre() {
     APP.encKey = novaChaveDerivada;
 
     await Store.saveDB();
-
     sessionStorage.setItem(SESSION_KEY, JSON.stringify({ user, ts: Date.now() }));
 
     document.getElementById('change-pwd-current').value = '';
     document.getElementById('change-pwd-new').value = '';
     document.getElementById('change-pwd-confirm').value = '';
 
-    showToast('Senha master e arquivos atualizados.', 'success');
+    showToast('Senha master e arquivos updated.', 'success');
   } catch (err) {
     console.error(err);
     showToast('Erro ao processar a alteração de senha.', 'error');
@@ -842,42 +882,32 @@ async function doLogin() {
   const user = document.getElementById('login-user').value.trim();
   const pass = document.getElementById('login-pass').value;
   const errEl = document.getElementById('login-error');
-  if (errEl) errEl.textContent = '';
+  errEl.textContent = '';
 
-  if (!user || !pass) {
-    if (errEl) errEl.textContent = 'Informe o usuário e a senha.';
-    return;
+  let storedUser = localStorage.getItem(ADMIN_USER_KEY);
+  let storedHash = localStorage.getItem(ADMIN_PASS_HASH_KEY);
+
+  if (!storedUser || !storedHash) {
+    storedUser = user;
+    storedHash = await Crypto.hashPassword(pass);
+    localStorage.setItem(ADMIN_USER_KEY, storedUser);
+    localStorage.setItem(ADMIN_PASS_HASH_KEY, storedHash);
   }
 
-  try {
-    let storedUser = localStorage.getItem(ADMIN_USER_KEY);
-    let storedHash = localStorage.getItem(ADMIN_PASS_HASH_KEY);
+  if (user !== storedUser) { errEl.textContent = 'Usuário inválido.'; return; }
 
-    if (!storedUser || !storedHash) {
-      storedUser = user;
-      storedHash = await Crypto.hashPassword(pass);
-      localStorage.setItem(ADMIN_USER_KEY, storedUser);
-      localStorage.setItem(ADMIN_PASS_HASH_KEY, storedHash);
-    }
+  const inputHash = await Crypto.hashPassword(pass);
+  if (inputHash !== storedHash) { errEl.textContent = 'Senha incorreta.'; return; }
 
-    if (user !== storedUser) { if (errEl) errEl.textContent = 'Usuário inválido.'; return; }
+  APP.encKey = await Crypto.deriveKey(pass, 'pwarruda_aes256_' + user);
+  Store.loadSettings();
+  await Store.loadDB();
 
-    const inputHash = await Crypto.hashPassword(pass);
-    if (inputHash !== storedHash) { if (errEl) errEl.textContent = 'Senha incorreta.'; return; }
-
-    APP.encKey = await Crypto.deriveKey(pass, 'pwarruda_aes256_' + user);
-    Store.loadSettings();
-    await Store.loadDB();
-
-    sessionStorage.setItem(SESSION_KEY, JSON.stringify({ user, ts: Date.now() }));
-    initApp();
-  } catch(e) {
-    console.error(e);
-    if (errEl) errEl.textContent = 'Erro no processamento criptográfico.';
-  }
+  sessionStorage.setItem(SESSION_KEY, JSON.stringify({ user, ts: Date.now() }));
+  await initApp();
 }
 
-function doLogout() {
+async function doLogout() {
   APP.encKey = null;
   APP.db = null;
   APP.fileHandle = null;
@@ -895,7 +925,7 @@ function doLogout() {
   updateVersionDisplay();
 }
 
-function initApp() {
+async function initApp() {
   document.getElementById('login-screen').classList.add('hidden');
   document.getElementById('topbar').classList.remove('hidden');
   document.getElementById('main').classList.remove('hidden');
@@ -910,11 +940,10 @@ function initApp() {
   renderCategoryManager();
   setupAutoLock();
 
-  carregarReferenciaArquivoSalva().then(() => {
-    if (APP.fileHandle) {
-      lerDadosDoArquivoVinculado();
-    }
-  });
+  await carregarReferenciaArquivoSalva();
+  if (APP.fileHandle) {
+    await lerDadosDoArquivoVinculado();
+  }
 }
 
 // ─── GERENCIAMENTO DINÂMICO DE CATEGORIAS ───
@@ -962,12 +991,12 @@ function renderCategoryManager() {
 
 async function processarFormularioCategoria() {
   const inputName = document.getElementById('new-cat-name');
-  const btnIcon = document.getElementById('btn-icon-selector');
+  const hiddenIcon = document.getElementById('new-cat-icon');
   const editIdInput = document.getElementById('edit-cat-id');
   
-  if (!inputName || !btnIcon) return;
+  if (!inputName || !hiddenIcon) return;
   const nameVal = inputName.value.trim();
-  const iconVal = btnIcon.textContent;
+  const iconVal = hiddenIcon.value;
   const editId = editIdInput.value;
 
   if (!nameVal) {
@@ -987,7 +1016,7 @@ async function processarFormularioCategoria() {
     const id = 'cat_' + Date.now() + Math.random().toString(36).substring(2, 5);
     APP.db.categories.push({ id, label: nameVal, icon: iconVal });
     inputName.value = '';
-    btnIcon.textContent = '📁';
+    setMatrixSelectedIcon('🔑'); // Reseta para o primeiro ícone padrão
     showToast('Categoria adicionada com sucesso!', 'success');
   }
   
@@ -1005,7 +1034,7 @@ function prepararEdicaoCategoria(id) {
   document.getElementById('category-manager-title').textContent = 'Editar Categoria';
   document.getElementById('edit-cat-id').value = cat.id;
   document.getElementById('new-cat-name').value = cat.label;
-  document.getElementById('btn-icon-selector').textContent = cat.icon || '📁';
+  setMatrixSelectedIcon(cat.icon || '📁');
   
   document.getElementById('btn-cat-save').textContent = '💾 Salvar Alterações';
   document.getElementById('btn-cat-cancel').classList.remove('hidden');
@@ -1016,7 +1045,7 @@ function cancelarEdicaoCategoria() {
   document.getElementById('category-manager-title').textContent = 'Gerenciar Categorias';
   document.getElementById('edit-cat-id').value = '';
   document.getElementById('new-cat-name').value = '';
-  document.getElementById('btn-icon-selector').textContent = '📁';
+  setMatrixSelectedIcon('🔑');
   
   document.getElementById('btn-cat-save').textContent = '✨ Adicionar Categoria';
   document.getElementById('btn-cat-cancel').classList.add('hidden');
@@ -1085,7 +1114,7 @@ function toggleBatchMode(isBatch) {
   }
 }
 
-async function executarImportacaoEmLote() {
+async function ejecutarImportacaoEmLote() {
   const textInput = document.getElementById('batch-text-input').value;
   if (!textInput.trim()) {
     showToast('Insira dados de texto válidos para processamento.', 'error');
@@ -1105,7 +1134,7 @@ async function executarImportacaoEmLote() {
     if (!title) continue;
 
     const username = partes[1] ? partes[1].trim() : '';
-    const password = partes[2] ? partes[2];
+    const password = partes[2] ? partes[2] : '';
     const optional01 = partes[3] ? partes[3].trim() : '';
     const optional02 = partes[4] ? partes[4].trim() : '';
     const notes = partes[5] ? partes[5].trim() : '';
@@ -1129,7 +1158,7 @@ async function executarImportacaoEmLote() {
 
   if (contagemSucesso > 0) {
     await Store.saveDB();
-    showToast(`${contagemSucesso} registros importados com sucesso!`, 'success');
+    showToast(`${contagemSucesso} arquivos importados com sucesso!`, 'success');
     
     document.getElementById('batch-text-input').value = '';
     document.getElementById('chk-batch-mode').checked = false;
@@ -1466,14 +1495,6 @@ function showToast(msg, type='info') {
   el.className = `toast-${type} show`;
   toastTimer = setTimeout(() => el.classList.remove('show'), 2800);
 }
-
-// ─── AUTO RUNS ───
-window.onload = () => {
-  updateVersionDisplay();
-  // Sessões automáticas sem preenchimento de senha violam a derivação de chave criptográfica (APP.encKey).
-  // Removida a restauração automática do ciclo inicial para forçar o login íntegro.
-  sessionStorage.removeItem(SESSION_KEY);
-};
 </script>
 </body>
 </html>
