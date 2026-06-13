@@ -109,7 +109,6 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
 .section-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;margin-top:.5rem}
 .section-title{font-size:1rem;font-weight:700;color:var(--text)}
 
-/* Ajustado para permitir quebra de linhas dentro do frame do aplicativo */
 .filter-row {
   display: flex;
   flex-wrap: wrap;
@@ -117,7 +116,6 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
   margin-bottom: 1.25rem;
 }
 
-/* Ajustado para garantir largura flexível dependendo do comprimento do texto */
 .filter-chip {
   font-size: 0.75rem;
   font-weight: 600;
@@ -241,12 +239,11 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
         <div class="logo-title">PWARRUDA</div>
         <div class="logo-sub">"O único limite verdadeiro é aquele que você aceita."</div>
         <div class="logo-sub" style="font-size: 0.65rem; color: var(--text3); margin-bottom: 1.5rem;"> .: Richard Bach :. </div>
+      </div>
       <div class="form-group">
-        <!-- <label>Usuário</label> -->
         <input type="text" id="login-user" autocomplete="username" placeholder="Usuário">
       </div>
       <div class="form-group">
-        <!-- <label>Senha Master</label> -->
         <div class="pwd-field">
           <input type="password" id="login-pass" autocomplete="current-password" placeholder="Senha de acesso">
           <button class="pwd-toggle" onclick="togglePwd('login-pass',this)">👁</button>
@@ -255,7 +252,6 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
       <div id="login-error" class="error-msg" style="margin-bottom:.75rem"></div>
       <button class="btn btn-primary btn-full" onclick="doLogin()">Entrar</button>
     </div>
-          
     <div class="version-badge" id="login-version"></div>
   </div>
 
@@ -532,13 +528,9 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
 <div id="toast"></div>
 
 <script>
-// ═══════════════════════════════════════════════════════════
-// PWARRUDA V2 — Core Application Engine
-// ═══════════════════════════════════════════════════════════
-
 const APP = {
   name: 'PWARRUDA',
-  build: '027',
+  build: '028',
   get fullName(){ return `${this.name} Build ${this.build}` },
   encKey: null,
   db: null,
@@ -559,15 +551,17 @@ const SETTINGS_KEY = 'pwarruda_settings';
 const SESSION_KEY = 'pwarruda_session';
 
 const DEFAULT_CATEGORIES = [
-  { id: 'login', label: 'Login', icon: '🔑' },
   { id: 'bank', label: 'Banco', icon: '🏦' },
-  { id: 'site', label: 'Site', icon: '🌐' },
-  { id: 'other', label: 'Outro', icon: '📁' }
+  { id: 'login', label: 'Login', icon: '🔑' },
+  { id: 'other', label: 'Outro', icon: '📁' },
+  { id: 'site', label: 'Site', icon: '🌐' }
 ];
 
 document.addEventListener("DOMContentLoaded", function() {
   updateVersionDisplay();
   initMatrixEvents();
+  Store.loadSettings();
+  verificarSessaoExistente();
 });
 
 window.onload = function() {
@@ -578,26 +572,20 @@ function updateVersionDisplay() {
   const v = `${APP.name} Build ${APP.build}`;
   const loginBadge = document.getElementById('login-version');
   const settingsBadge = document.getElementById('settings-version');
-  
   if (loginBadge) loginBadge.textContent = v;
   if (settingsBadge) settingsBadge.textContent = v;
 }
 
-/* ─── CONTROLE JAVASCRIPT DA MATRIZ DE ÍCONES ─── */
 function initMatrixEvents() {
   const container = document.getElementById('icon-matrix-container');
   if (!container) return;
-
   container.addEventListener('click', function(e) {
     const cell = e.target.closest('.matrix-option-cell');
     if (!cell) return;
-
     container.querySelectorAll('.matrix-option-cell').forEach(c => {
       c.classList.remove('active-selected');
     });
-
     cell.classList.add('active-selected');
-    
     const iconValue = cell.getAttribute('data-icon');
     document.getElementById('new-cat-icon').value = iconValue;
   });
@@ -606,7 +594,6 @@ function initMatrixEvents() {
 function setMatrixSelectedIcon(icon) {
   const container = document.getElementById('icon-matrix-container');
   if (!container) return;
-
   container.querySelectorAll('.matrix-option-cell').forEach(cell => {
     if (cell.getAttribute('data-icon') === icon) {
       cell.classList.add('active-selected');
@@ -617,14 +604,15 @@ function setMatrixSelectedIcon(icon) {
   document.getElementById('new-cat-icon').value = icon;
 }
 
-// ─── CRYPTO ENGINE ───
 const Crypto = {
   async deriveKey(password, salt) {
     const enc = new TextEncoder();
     const keyMaterial = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveKey']);
     return crypto.subtle.deriveKey(
       { name: 'PBKDF2', salt: enc.encode(salt), iterations: 100000, hash: 'SHA-256' },
-      keyMaterial, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']
+      keyMaterial,
+      { name: 'AES-GCM', length: 256 },
+      false, ['encrypt', 'decrypt']
     );
   },
   async encrypt(data, key) {
@@ -632,7 +620,8 @@ const Crypto = {
     const enc = new TextEncoder();
     const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, enc.encode(JSON.stringify(data)));
     const buf = new Uint8Array(iv.length + ct.byteLength);
-    buf.set(iv, 0); buf.set(new Uint8Array(ct), iv.length);
+    buf.set(iv, 0);
+    buf.set(new Uint8Array(ct), iv.length);
     return btoa(String.fromCharCode(...buf));
   },
   async decrypt(b64, key) {
@@ -650,10 +639,16 @@ const Crypto = {
 };
 
 function newDB() {
-  return { version: 1, records: [], categories: [...DEFAULT_CATEGORIES], backups: [], lastSync: null, lastModified: Date.now() };
+  return {
+    version: 1,
+    records: [],
+    categories: [...DEFAULT_CATEGORIES],
+    backups: [],
+    lastSync: null,
+    lastModified: Date.now()
+  };
 }
 
-// ─── PERSISTÊNCIA ───
 const Store = {
   async saveDB() {
     if (!APP.encKey) return;
@@ -661,24 +656,26 @@ const Store = {
     const encrypted = await Crypto.encrypt(APP.db, APP.encKey);
     localStorage.setItem(DB_KEY, encrypted);
     updateSyncIndicator();
-
     if (APP.fileHandle) {
       await gravarDadosNoArquivoVinculado();
     }
   },
   async loadDB() {
     const raw = localStorage.getItem(DB_KEY);
-    if (!raw) { APP.db = newDB(); return; }
+    if (!raw) {
+      APP.db = newDB();
+      return;
+    }
     try {
       APP.db = await Crypto.decrypt(raw, APP.encKey);
       if (!APP.db.records) APP.db.records = [];
       if (!APP.db.categories || APP.db.categories.length === 0) {
         APP.db.categories = [...DEFAULT_CATEGORIES];
       }
-      APP.db.categories.forEach(c => {
-        if (!c.icon) c.icon = '📁';
-      });
-    } catch(e) { APP.db = newDB(); }
+      APP.db.categories.forEach(c => { if (!c.icon) c.icon = '📁'; });
+    } catch(e) {
+      APP.db = newDB();
+    }
   },
   saveSetting(k, v) {
     APP.settings[k] = v;
@@ -688,12 +685,13 @@ const Store = {
   loadSettings() {
     const raw = localStorage.getItem(SETTINGS_KEY);
     APP.settings = raw ? JSON.parse(raw) : { autolock: false, timeout: 15 };
+    const chk = document.getElementById('tog-autolock');
+    if (chk) chk.checked = !!APP.settings.autolock;
+    const sel = document.getElementById('sel-timeout');
+    if (sel) sel.value = APP.settings.timeout || "15";
   }
 };
 
-function saveSetting(k, v) { Store.saveSetting(k, v); }
-
-// ─── FILE SYSTEM ACCESS CORE ───
 async function verificarPermissaoArquivo(fileHandle, readWrite) {
   const options = {};
   if (readWrite) options.mode = 'readwrite';
@@ -704,489 +702,397 @@ async function verificarPermissaoArquivo(fileHandle, readWrite) {
 
 async function vincularArquivoNovo() {
   if (!APP.encKey) { showToast('Efetue login antes de criar arquivos.', 'error'); return; }
-  const options = {
-    suggestedName: 'senhas.json',
-    types: [{ description: 'Arquivo de Dados Criptografados', accept: { 'application/json': ['.json'] } }]
-  };
+  const options = { suggestedName: 'senhas.json', types: [{ description: 'Arquivo de Dados Criptografados', accept: { 'application/json': ['.json'] } }] };
   try {
     const handle = await window.showSaveFilePicker(options);
     APP.fileHandle = handle;
     APP.fileName = handle.name;
+    localStorage.setItem('pwarruda_file_name', APP.fileName);
     await gravarDadosNoArquivoVinculado();
-    await salvarReferenciaArquivo(handle);
-    atualizarUIArquivo();
-    showToast('Arquivo criado e vinculado com sucesso!', 'success');
-  } catch (err) {
-    if (err.name !== 'AbortError') showToast('Falha ao vincular o arquivo.', 'error');
-  }
+    document.getElementById('local-file-status').textContent = APP.fileName;
+    document.getElementById('local-file-path').textContent = "Arquivo local criado e sincronizado ativamente.";
+    showToast('Arquivo criado e vinculado.', 'success');
+    updateSyncIndicator();
+  } catch(err) { showToast('Operação cancelada.', 'info'); }
 }
 
 async function carregarArquivoExistente() {
-  if (!APP.encKey) { showToast('Efetue login antes de processar arquivos.', 'error'); return; }
-  const options = {
-    types: [{ description: 'Arquivo de Dados Criptografados', accept: { 'application/json': ['.json'] } }],
-    multiple: false
-  };
+  if (!APP.encKey) return;
   try {
-    const [handle] = await window.showOpenFilePicker(options);
-    APP.fileHandle = handle;
-    APP.fileName = handle.name;
-    await lerDadosDoArquivoVinculado();
-    await salvarReferenciaArquivo(handle);
-    atualizarUIArquivo();
-  } catch (err) {
-    if (err.name !== 'AbortError') showToast('Erro ao ler o arquivo selecionado.', 'error');
-  }
-}
-
-async function lerDadosDoArquivoVinculado() {
-  if (!APP.fileHandle) return;
-  try {
-    if (!(await verificarPermissaoArquivo(APP.fileHandle, false))) {
-      showToast('Permissão de leitura negada.', 'error');
-      return;
-    }
-    const file = await APP.fileHandle.getFile();
-    const textoCriptografado = await file.text();
-    if (!textoCriptografado.trim()) { showToast('Arquivo em branco disponível para gravação.', 'info'); return; }
-
-    const bancoDescriptografado = await Crypto.decrypt(textoCriptografado, APP.encKey);
-    if (bancoDescriptografado && bancoDescriptografado.records) {
-      APP.db = bancoDescriptografado;
-      if (!APP.db.categories || APP.db.categories.length === 0) {
-        APP.db.categories = [...DEFAULT_CATEGORIES];
+    const [handle] = await window.showOpenFilePicker({ types: [{ description: 'Arquivo JSON', accept: { 'application/json': ['.json'] } }] });
+    if (await verificarPermissaoArquivo(handle, true)) {
+      APP.fileHandle = handle;
+      APP.fileName = handle.name;
+      localStorage.setItem('pwarruda_file_name', APP.fileName);
+      const file = await handle.getFile();
+      const text = await file.text();
+      if (text.trim().length > 0) {
+        const decryptedDB = await Crypto.decrypt(text, APP.encKey);
+        if (decryptedDB && decryptedDB.records) {
+          APP.db = decryptedDB;
+          if (!APP.db.categories || APP.db.categories.length === 0) {
+            APP.db.categories = [...DEFAULT_CATEGORIES];
+          }
+          APP.db.categories.forEach(c => { if (!c.icon) c.icon = '📁'; });
+          const encryptedLocal = await Crypto.encrypt(APP.db, APP.encKey);
+          localStorage.setItem(DB_KEY, encryptedLocal);
+          dinamizarElementosUI();
+          refreshCurrentPage();
+          showToast('Dados lidos e sincronizados localmente.', 'success');
+        }
+      } else {
+        await gravarDadosNoArquivoVinculado();
+        showToast('Arquivo em branco. Base local enviada.', 'info');
       }
-      APP.db.categories.forEach(c => { if (!c.icon) c.icon = '📁'; });
-      localStorage.setItem(DB_KEY, textoCriptografado);
-      showToast('Dados sincronizados.', 'success');
-      dinamizarElementosUI();
-      refreshCurrentPage();
+      document.getElementById('local-file-status').textContent = APP.fileName;
+      document.getElementById('local-file-path').textContent = "Arquivo carregado e monitorado via API nativa.";
+      updateSyncIndicator();
     }
-  } catch (err) {
-    console.error(err);
-    showToast('Senha inválida ou arquivo de dados corrompido.', 'error');
-  }
+  } catch(err) { showToast('Falha ao ler arquivo selecionado.', 'error'); }
 }
 
 async function gravarDadosNoArquivoVinculado() {
-  if (!APP.fileHandle || !APP.db) return;
+  if (!APP.fileHandle || !APP.encKey || !APP.db) return;
   try {
-    if (!(await verificarPermissaoArquivo(APP.fileHandle, true))) return;
-    const textoCriptografado = await Crypto.encrypt(APP.db, APP.encKey);
-    const writable = await APP.fileHandle.createWritable();
-    await writable.write(textoCriptografado);
-    await writable.close();
-  } catch (err) {
-    console.error(err);
-    showToast('Erro ao gravar atualizações no arquivo local.', 'error');
-  }
+    if (await verificarPermissaoArquivo(APP.fileHandle, true)) {
+      const writable = await APP.fileHandle.createWritable();
+      const encrypted = await Crypto.encrypt(APP.db, APP.encKey);
+      await writable.write(encrypted);
+      await writable.close();
+      APP.db.lastSync = Date.now();
+    }
+  } catch(err) { console.error("Erro ao gravar arquivo vinculado:", err); }
 }
 
-function atualizarUIArquivo() {
-  const statusEl = document.getElementById('local-file-status');
-  const pathEl = document.getElementById('local-file-path');
-  if (APP.fileHandle && APP.fileName) {
-    statusEl.textContent = `🔗 Vinculado ao arquivo: ${APP.fileName}`;
-    pathEl.innerHTML = `Todas as alterações efetuadas serão salvas de forma imediata neste arquivo local.`;
+function updateSyncIndicator() {
+  const ind = document.getElementById('sync-indicator');
+  if (!ind) return;
+  if (APP.fileHandle) {
+    ind.textContent = "sync";
+    ind.style.color = "var(--success)";
+    ind.title = `Sincronia ativa com: ${APP.fileName}`;
   } else {
-    statusEl.textContent = 'Nenhum arquivo local vinculado';
-    pathEl.textContent = 'Mapeie um arquivo .json persistido na sua pasta de sincronização na nuvem.';
+    ind.textContent = "sync_saved_locally";
+    ind.style.color = "var(--text3)";
+    ind.title = "Sincronização apenas em LocalStorage";
   }
 }
 
-// ─── INDEXEDDB REFERÊNCIA ARQUIVO ───
-function salvarReferenciaArquivo(handle) {
-  return new Promise((resolve) => {
-    const request = indexedDB.open("pwarruda_local_storage", 1);
-    request.onupgradeneeded = (e) => e.target.result.createObjectStore("handles");
-    request.onsuccess = (e) => {
-      const tx = e.target.result.transaction("handles", "readwrite");
-      tx.objectStore("handles").put(handle, "ultimo_handle");
-      tx.oncomplete = () => resolve();
-    };
-  });
-}
-
-function carregarReferenciaArquivoSalva() {
-  return new Promise((resolve) => {
-    const request = indexedDB.open("pwarruda_local_storage", 1);
-    request.onupgradeneeded = (e) => e.target.result.createObjectStore("handles");
-    request.onsuccess = (e) => {
-      const tx = e.target.result.transaction("handles", "readonly");
-      const getReq = tx.objectStore("handles").get("ultimo_handle");
-      getReq.onsuccess = () => {
-        if (getReq.result) {
-          APP.fileHandle = getReq.result;
-          APP.fileName = getReq.result.name;
-          atualizarUIArquivo();
-        }
-        resolve();
-      };
-    };
-  });
-}
-
-// ─── ALTERAÇÃO DE SENHA MASTER ───
-async function alterarSenhaMestre() {
-  const senhaAtual = document.getElementById('change-pwd-current').value;
-  const novaSenha = document.getElementById('change-pwd-new').value;
-  const confirmacaoSenha = document.getElementById('change-pwd-confirm').value;
-
-  if (!senhaAtual || !novaSenha || !confirmacaoSenha) {
-    showToast('Preencha todos os campos para realizar a alteração.', 'error');
-    return;
-  }
-  if (novaSenha !== confirmacaoSenha) {
-    showToast('A nova senha e a confirmação não coincidem.', 'error');
-    return;
-  }
-  if (novaSenha.length < 6) {
-    showToast('A nova senha deve possuir pelo menos 6 caracteres.', 'error');
-    return;
-  }
-
-  try {
-    const user = localStorage.getItem(ADMIN_USER_KEY);
-    const hashArmazenado = localStorage.getItem(ADMIN_PASS_HASH_KEY);
-    const hashAtualDigitado = await Crypto.hashPassword(senhaAtual);
-
-    if (hashAtualDigitado !== hashArmazenado) {
-      showToast('Senha atual incorreta.', 'error');
+async function doLogin() {
+  const userInp = document.getElementById('login-user').value.trim();
+  const passInp = document.getElementById('login-pass').value;
+  const errDiv = document.getElementById('login-error');
+  if (!userInp || !passInp) { errDiv.textContent = 'Preencha todos os campos.'; return; }
+  
+  const localUser = localStorage.getItem(ADMIN_USER_KEY);
+  const localHash = localStorage.getItem(ADMIN_PASS_HASH_KEY);
+  const inputHash = await Crypto.hashPassword(passInp);
+  
+  if (!localUser) {
+    localStorage.setItem(ADMIN_USER_KEY, userInp);
+    localStorage.setItem(ADMIN_PASS_HASH_KEY, inputHash);
+    APP.encKey = await Crypto.deriveKey(passInp, userInp);
+    APP.db = newDB();
+    const encrypted = await Crypto.encrypt(APP.db, APP.encKey);
+    localStorage.setItem(DB_KEY, encrypted);
+    showToast('Primeiro acesso! Credenciais criadas.', 'success');
+  } else {
+    if (userInp !== localUser || inputHash !== localHash) {
+      errDiv.textContent = 'Credenciais incorretas.';
       return;
     }
+    APP.encKey = await Crypto.deriveKey(passInp, userInp);
+    await Store.loadDB();
+  }
+  
+  sessionStorage.setItem(SESSION_KEY, 'active');
+  document.getElementById('login-screen').classList.add('hidden');
+  document.getElementById('topbar').classList.remove('hidden');
+  document.getElementById('main').classList.remove('hidden');
+  document.getElementById('bottom-nav').classList.remove('hidden');
+  
+  const savedFileName = localStorage.getItem('pwarruda_file_name');
+  if (savedFileName) {
+    document.getElementById('local-file-status').textContent = savedFileName;
+    document.getElementById('local-file-path').textContent = "Aguardando re-vínculo manual nesta sessão para segurança.";
+  }
+  
+  dinamizarElementosUI();
+  showPage('home');
+  setupAutoLock();
+  showToast('Autenticação realizada.', 'success');
+}
 
-    const novaChaveDerivada = await Crypto.deriveKey(novaSenha, 'pwarruda_aes256_' + user);
-    const novoHashSenha = await Crypto.hashPassword(novaSenha);
-
-    localStorage.setItem(ADMIN_PASS_HASH_KEY, novoHashSenha);
-    APP.encKey = novaChaveDerivada;
-
-    await Store.saveDB();
-    sessionStorage.setItem(SESSION_KEY, JSON.stringify({ user, ts: Date.now() }));
-
-    document.getElementById('change-pwd-current').value = '';
-    document.getElementById('change-pwd-new').value = '';
-    document.getElementById('change-pwd-confirm').value = '';
-
-    showToast('Senha master e arquivos atualizados.', 'success');
-  } catch (err) {
-    console.error(err);
-    showToast('Erro ao processar a alteração de senha.', 'error');
+function verificarSessaoExistente() {
+  const state = sessionStorage.getItem(SESSION_KEY);
+  if (state === 'active') {
+    const rawUser = localStorage.getItem(ADMIN_USER_KEY);
+    if (rawUser) {
+      document.getElementById('login-user').value = rawUser;
+      showToast('Insira sua senha de acesso para descriptografar os dados.', 'info');
+    }
   }
 }
 
-// ─── LOGIN & SESSÃO ───
-async function doLogin() {
-  const user = document.getElementById('login-user').value.trim();
-  const pass = document.getElementById('login-pass').value;
-  const errEl = document.getElementById('login-error');
-  errEl.textContent = '';
-
-  let storedUser = localStorage.getItem(ADMIN_USER_KEY);
-  let storedHash = localStorage.getItem(ADMIN_PASS_HASH_KEY);
-
-  if (!storedUser || !storedHash) {
-    storedUser = user;
-    storedHash = await Crypto.hashPassword(pass);
-    localStorage.setItem(ADMIN_USER_KEY, storedUser);
-    localStorage.setItem(ADMIN_PASS_HASH_KEY, storedHash);
-  }
-
-  if (user !== storedUser) { errEl.textContent = 'Usuário inválido.'; return; }
-
-  const inputHash = await Crypto.hashPassword(pass);
-  if (inputHash !== storedHash) { errEl.textContent = 'Senha incorreta.'; return; }
-
-  APP.encKey = await Crypto.deriveKey(pass, 'pwarruda_aes256_' + user);
-  Store.loadSettings();
-  await Store.loadDB();
-
-  sessionStorage.setItem(SESSION_KEY, JSON.stringify({ user, ts: Date.now() }));
-  await initApp();
-}
-
-async function doLogout() {
+function doLogout() {
   APP.encKey = null;
   APP.db = null;
   APP.fileHandle = null;
   APP.fileName = null;
   sessionStorage.removeItem(SESSION_KEY);
-  
-  document.getElementById('login-user').value = '';
+  if (APP.lockTimer) clearTimeout(APP.lockTimer);
   document.getElementById('login-pass').value = '';
-  
-  document.getElementById('login-screen').classList.remove('hidden');
+  document.getElementById('login-error').textContent = '';
   document.getElementById('topbar').classList.add('hidden');
   document.getElementById('main').classList.add('hidden');
   document.getElementById('bottom-nav').classList.add('hidden');
-  clearLockTimer();
-  updateVersionDisplay();
+  document.getElementById('login-screen').classList.remove('hidden');
 }
 
-async function initApp() {
-  document.getElementById('login-screen').classList.add('hidden');
-  document.getElementById('topbar').classList.remove('hidden');
-  document.getElementById('main').classList.remove('hidden');
-  document.getElementById('bottom-nav').classList.remove('hidden');
+function setupAutoLock() {
+  if (APP.lockTimer) clearTimeout(APP.lockTimer);
+  if (!APP.settings.autolock || !APP.encKey) return;
+  const mins = parseInt(APP.settings.timeout || 15);
+  APP.lockTimer = setTimeout(() => {
+    doLogout();
+    showToast('Sessão bloqueada por inatividade.', 'info');
+  }, mins * 60 * 1000);
+}
 
-  updateVersionDisplay();
-  dinamizarElementosUI();
-  renderDashboard();
-  renderRecords();
-  atualizarUIArquivo();
-  loadSettingsUI();
-  renderCategoryManager();
+function resetAutoLockTimer() {
   setupAutoLock();
+}
+window.addEventListener('click', resetAutoLockTimer);
+window.addEventListener('keypress', resetAutoLockTimer);
 
-  await carregarReferenciaArquivoSalva();
-  if (APP.fileHandle) {
-    await lerDadosDoArquivoVinculado();
+function dinamizarElementosUI() {
+  if (!APP.db) return;
+  
+  // Ordenação alfabética crescente das categorias usando localeCompare
+  APP.db.categories.sort((a, b) => a.label.localeCompare(b.label, 'pt-BR'));
+  
+  const select = document.getElementById('form-type');
+  if (select) {
+    select.innerHTML = '';
+    APP.db.categories.forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c.id;
+      opt.textContent = `${c.icon} ${c.label}`;
+      select.appendChild(opt);
+    });
   }
+  
+  const fRow = document.getElementById('filter-row');
+  if (fRow) {
+    fRow.innerHTML = '';
+    const chipAll = document.createElement('button');
+    chipAll.className = `filter-chip ${APP.currentFilter === 'all' ? 'active' : ''}`;
+    chipAll.textContent = '📌 Todos';
+    chipAll.onclick = () => setFilter('all');
+    fRow.appendChild(chipAll);
+    
+    APP.db.categories.forEach(c => {
+      const chip = document.createElement('button');
+      chip.className = `filter-chip ${APP.currentFilter === c.id ? 'active' : ''}`;
+      chip.textContent = `${c.icon} ${c.label}`;
+      chip.onclick = () => setFilter(c.id);
+      fRow.appendChild(chip);
+    });
+  }
+  
+  renderHomeStats();
+  renderRecordsList();
+  renderCategoryManager();
 }
 
-// ─── GERENCIAMENTO DINÂMICO DE CATEGORIAS (COM ORDENAÇÃO A-Z) ───
-function dinamizarElementosUI() {
-  if (!APP.db || !APP.db.categories) return;
-
-  // Cópia das categorias filtrada e ordenada alfabeticamente de A-Z pelo label
-  const categoriasOrdenadas = [...APP.db.categories].sort((a, b) => 
-    (a.label || '').localeCompare(b.label || '', 'pt-BR')
-  );
-
-  const selectForm = document.getElementById('form-type');
-  if (selectForm) {
-    selectForm.innerHTML = categoriasOrdenadas.map(c => 
-      `<option value="${c.id}">${c.icon ? c.icon + ' ' : ''}${escHtml(c.label)}</option>`
-    ).join('');
+function renderHomeStats() {
+  if (!APP.db) return;
+  const tot = APP.db.records.length;
+  document.getElementById('stat-total').textContent = tot;
+  
+  let bank = 0, site = 0, login = 0;
+  APP.db.records.forEach(r => {
+    if (r.type === 'bank') bank++;
+    if (r.type === 'site') site++;
+    if (r.type === 'login') login++;
+  });
+  
+  document.getElementById('stat-bank').textContent = bank;
+  document.getElementById('stat-sites').textContent = site;
+  document.getElementById('stat-logins').textContent = login;
+  
+  const sortedRecent = [...APP.db.records].sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+  const recentSlice = sortedRecent.slice(0, 3);
+  const container = document.getElementById('recent-list');
+  if (!container) return;
+  container.innerHTML = '';
+  
+  if (recentSlice.length === 0) {
+    container.innerHTML = '<div class="empty-state"><p class="empty-text">Nenhum registro adicionado recentemente.</p></div>';
+    return;
   }
+  recentSlice.forEach(r => container.appendChild(createRecordCardElement(r)));
+}
 
-  const filterRow = document.getElementById('filter-row');
-  if (filterRow) {
-    let htmlChips = `<button class="filter-chip ${APP.currentFilter === 'all' ? 'active' : ''}" onclick="setFilter('all',this)">Todos</button>`;
-    htmlChips += categoriasOrdenadas.map(c => {
-      const displayLabel = c.icon ? `${c.icon} ${c.label}` : c.label;
-      return `<button class="filter-chip ${APP.currentFilter === c.id ? 'active' : ''}" onclick="setFilter('${c.id}',this)">${escHtml(displayLabel)}</button>`;
-    }).join('');
-    filterRow.innerHTML = htmlChips;
+function renderRecordsList() {
+  const container = document.getElementById('records-list');
+  if (!container) return;
+  container.innerHTML = '';
+  if (!APP.db) return;
+  
+  let filtered = APP.db.records.filter(r => {
+    if (APP.currentFilter !== 'all' && r.type !== APP.currentFilter) return false;
+    if (APP.searchQuery) {
+      const q = APP.searchQuery.toLowerCase();
+      return (r.title || '').toLowerCase().includes(q) || 
+             (r.username || '').toLowerCase().includes(q) || 
+             (r.notes || '').toLowerCase().includes(q) ||
+             (r.optional01 || '').toLowerCase().includes(q) ||
+             (r.optional02 || '').toLowerCase().includes(q);
+    }
+    return true;
+  });
+  
+  if (APP.sortOrder === 'asc') {
+    filtered.sort((a, b) => (a.title || '').localeCompare(b.title || '', 'pt-BR'));
+  } else {
+    filtered.sort((a, b) => (b.title || '').localeCompare(a.title || '', 'pt-BR'));
   }
+  
+  if (filtered.length === 0) {
+    container.innerHTML = '<div class="empty-state"><p class="empty-text">Nenhum registro localizado para os filtros atuais.</p></div>';
+    return;
+  }
+  filtered.forEach(r => container.appendChild(createRecordCardElement(r)));
+}
+
+function createRecordCardElement(r) {
+  const cat = APP.db.categories.find(c => c.id === r.type) || { icon: '📁', label: 'Outro' };
+  const card = document.createElement('div');
+  card.className = 'record-card';
+  
+  let optionalHtml = '';
+  if (r.optional01 || r.optional02) {
+    optionalHtml = `<div class="record-optional-block">`;
+    if (r.optional01) optionalHtml += `<span>${escHtml(r.optional01)}</span>`;
+    if (r.optional02) optionalHtml += `<span>${escHtml(r.optional02)}</span>`;
+    optionalHtml += `</div>`;
+  }
+  
+  let notesHtml = '';
+  if (r.notes) {
+    notesHtml = `<div class="record-notes">${escHtml(r.notes)}</div>`;
+  }
+  
+  const dateStr = r.updatedAt ? new Date(r.updatedAt).toLocaleDateString('pt-BR') : '';
+  
+  card.innerHTML = `
+    <div class="record-icon">${cat.icon}</div>
+    <div class="record-info">
+      <div class="record-title">${escHtml(r.title)} <span class="tag">${cat.label}</span></div>
+      <div class="record-sub">${r.username ? escHtml(r.username) : '<span style="color:var(--text3);font-style:italic;">Sem usuário</span>'}</div>
+      ${optionalHtml}
+      ${notesHtml}
+      <div class="record-meta">
+        <span class="pwd-field" style="display:inline-flex;align-items:center;gap:4px;background:rgba(0,0,0,0.2);padding:2px 8px;border-radius:4px;">
+          <input type="password" id="card-pwd-${r.id}" value="${escHtml(r.password)}" readonly style="background:none;border:none;color:var(--primary-light);font-size:0.8rem;width:80px;padding:0;outline:none;pointer-events:none;">
+          <button style="background:none;border:none;color:var(--text2);cursor:pointer;font-size:0.75rem;" onclick="event.stopPropagation();toggleCardPwd('card-pwd-${r.id}',this)">👁</button>
+        </span>
+        <button class="btn btn-sm btn-secondary" style="padding:1px 6px;font-size:0.65rem;" onclick="event.stopPropagation();copiarTexto('${escHtml(r.password)}')">Copiar Senha</button>
+        <span class="date-label">${dateStr}</span>
+      </div>
+    </div>
+    <div class="record-actions">
+      <button class="btn btn-icon btn-secondary btn-sm" onclick="event.stopPropagation();editarRegistro('${r.id}')"><span class="material-symbols-outlined" style="font-size:16px;">edit</span></button>
+      <button class="btn btn-icon btn-danger btn-sm" onclick="event.stopPropagation();excluirRegistro('${r.id}')"><span class="material-symbols-outlined" style="font-size:16px;">delete</span></button>
+    </div>
+  `;
+  return card;
+}
+
+function toggleCardPwd(id, btn) {
+  const inp = document.getElementById(id);
+  if (!inp) return;
+  if (inp.type === 'password') { inp.type = 'text'; btn.textContent = '🙈'; }
+  else { inp.type = 'password'; btn.textContent = '👁'; }
 }
 
 function renderCategoryManager() {
-  const managerList = document.getElementById('categories-manager-list');
-  if (!managerList || !APP.db || !APP.db.categories) return;
-
-  if (APP.db.categories.length === 0) {
-    managerList.innerHTML = '<div class="empty-state"><div class="empty-text">Nenhuma categoria cadastrada.</div></div>';
-    return;
-  }
-
-  // Ordenação aplicada também na lista de administração interna para consistência visual
-  const categoriasOrdenadas = [...APP.db.categories].sort((a, b) => 
-    (a.label || '').localeCompare(b.label || '', 'pt-BR')
-  );
-
-  managerList.innerHTML = categoriasOrdenadas.map(c => `
-    <div class="category-manager-item">
-      <span class="category-manager-name">
-         <span style="font-size:1.2rem; margin-right:4px">${escHtml(c.icon || '📁')}</span> 
-         ${escHtml(c.label)}
-      </span>
-      <div style="display:flex; gap:0.35rem">
-        <button class="btn btn-secondary btn-sm" style="padding:0.35rem 0.6rem;" onclick="prepararEdicaoCategoria('${c.id}')" title="Editar Categoria">✏️</button>
-        <button class="btn btn-danger btn-sm" style="padding:0.35rem 0.6rem;" onclick="removerCategoriaCustomizada('${c.id}')" title="Remover Categoria">🗑️</button>
-      </div>
-    </div>
-  `).join('');
-}
-
-async function processarFormularioCategoria() {
-  const inputName = document.getElementById('new-cat-name');
-  const hiddenIcon = document.getElementById('new-cat-icon');
-  const editIdInput = document.getElementById('edit-cat-id');
+  const container = document.getElementById('categories-manager-list');
+  if (!container) return;
+  container.innerHTML = '';
+  if (!APP.db) return;
   
-  if (!inputName || !hiddenIcon) return;
-  const nameVal = inputName.value.trim();
-  const iconVal = hiddenIcon.value;
-  const editId = editIdInput.value;
-
-  if (!nameVal) {
-    showToast('Informe um nome válido para a categoria.', 'error');
-    return;
-  }
-
-  if (editId) {
-    const cat = APP.db.categories.find(c => c.id === editId);
-    if (cat) {
-      cat.label = nameVal;
-      cat.icon = iconVal;
-      showToast('Categoria updated.', 'success');
-    }
-    cancelarEdicaoCategoria();
-  } else {
-    const id = 'cat_' + Date.now() + Math.random().toString(36).substring(2, 5);
-    APP.db.categories.push({ id, label: nameVal, icon: iconVal });
-    inputName.value = '';
-    setMatrixSelectedIcon('🔑'); 
-    showToast('Categoria adicionada com sucesso!', 'success');
-  }
+  // Ordenação alfabética crescente antes de renderizar a gerência de categorias
+  APP.db.categories.sort((a, b) => a.label.localeCompare(b.label, 'pt-BR'));
   
-  await Store.saveDB();
-  dinamizarElementosUI();
-  renderCategoryManager();
-  renderDashboard();
-  renderRecords();
-}
-
-function prepararEdicaoCategoria(id) {
-  const cat = APP.db.categories.find(c => c.id === id);
-  if (!cat) return;
-
-  document.getElementById('category-manager-title').textContent = 'Editar Categoria';
-  document.getElementById('edit-cat-id').value = cat.id;
-  document.getElementById('new-cat-name').value = cat.label;
-  setMatrixSelectedIcon(cat.icon || '📁');
-  
-  document.getElementById('btn-cat-save').textContent = '💾 Salvar Alterações';
-  document.getElementById('btn-cat-cancel').classList.remove('hidden');
-  document.getElementById('new-cat-name').focus();
-}
-
-function cancelarEdicaoCategoria() {
-  document.getElementById('category-manager-title').textContent = 'Gerenciar Categorias';
-  document.getElementById('edit-cat-id').value = '';
-  document.getElementById('new-cat-name').value = '';
-  setMatrixSelectedIcon('🔑');
-  
-  document.getElementById('btn-cat-save').textContent = '✨ Adicionar Categoria';
-  document.getElementById('btn-cat-cancel').classList.add('hidden');
-}
-
-async function removerCategoriaCustomizada(id) {
-  if (!confirm('Deseja realmente remover esta categoria? Registros associados a ela serão exibidos como "Outro".')) return;
-
-  const idx = APP.db.categories.findIndex(c => c.id === id);
-  if (idx !== -1) {
-    APP.db.categories.splice(idx, 1);
+  APP.db.categories.forEach(c => {
+    const item = document.createElement('div');
+    item.className = 'category-manager-item';
     
-    APP.db.records.forEach(r => {
-      if (r.type === id) r.type = 'other';
-    });
-
-    if (APP.currentFilter === id) APP.currentFilter = 'all';
-
-    await Store.saveDB();
-    showToast('Categoria removida.', 'success');
-    cancelarEdicaoCategoria();
-    dinamizarElementosUI();
-    renderCategoryManager();
-    renderDashboard();
-    renderRecords();
-  }
+    const isDefault = DEFAULT_CATEGORIES.some(dc => dc.id === c.id);
+    let actionsHtml = `<span style="font-size:0.7rem; color:var(--text3); font-style:italic;">Sistema</span>`;
+    
+    if (!isDefault) {
+      actionsHtml = `
+        <div style="display:flex; gap:0.35rem">
+          <button class="btn btn-icon btn-secondary btn-sm" onclick="editarCategoria('${c.id}')"><span class="material-symbols-outlined" style="font-size:16px;">edit</span></button>
+          <button class="btn btn-icon btn-danger btn-sm" onclick="excluirCategoria('${c.id}')"><span class="material-symbols-outlined" style="font-size:16px;">delete</span></button>
+        </div>
+      `;
+    }
+    
+    item.innerHTML = `
+      <div class="category-manager-name"><span>${c.icon}</span> ${escHtml(c.label)}</div>
+      ${actionsHtml}
+    `;
+    container.appendChild(item);
+  });
 }
 
-// ─── NAVEGAÇÃO ───
+function setFilter(f) {
+  APP.currentFilter = f;
+  dinamizarElementosUI();
+}
+
+function doSearch(val) {
+  APP.searchQuery = val;
+  renderRecordsList();
+}
+
+function toggleSort() {
+  APP.sortOrder = APP.sortOrder === 'asc' ? 'desc' : 'asc';
+  const icon = document.getElementById('sort-icon');
+  if (icon) icon.textContent = APP.sortOrder === 'asc' ? 'sort_by_alpha' : 'text_rotation_down';
+  renderRecordsList();
+}
+
 function showPage(p) {
-  document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-  if (document.getElementById('page-' + p)) document.getElementById('page-' + p).classList.add('active');
-  if (document.getElementById('nav-' + p)) document.getElementById('nav-' + p).classList.add('active');
   APP.currentPage = p;
-  refreshCurrentPage();
-  document.getElementById('main').scrollTop = 0;
+  document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+  
+  const targetPage = document.getElementById(`page-${p}`);
+  if (targetPage) targetPage.classList.add('active');
+  
+  const targetNav = document.getElementById(`nav-${p}`);
+  if (targetNav) targetNav.classList.add('active');
+  
+  if (p === 'settings') {
+    const chk = document.getElementById('tog-autolock');
+    if (chk) chk.checked = !!APP.settings.autolock;
+    const sel = document.getElementById('sel-timeout');
+    if (sel) sel.value = APP.settings.timeout || "15";
+  }
+  
+  resetAutoLockTimer();
 }
 
 function refreshCurrentPage() {
-  if (APP.currentPage === 'home') renderDashboard();
-  if (APP.currentPage === 'records') renderRecords();
-  if (APP.currentPage === 'categories') { renderCategoryManager(); cancelarEdicaoCategoria(); }
-  if (APP.currentPage === 'sync') atualizarUIArquivo();
+  showPage(APP.currentPage);
 }
 
-// ─── INTERFACE DE IMPORTAÇÃO EM LOTE ───
-function toggleBatchMode(isBatch) {
-  const standardFields = document.getElementById('form-fields-standard');
-  const batchBlock = document.getElementById('batch-import-block');
-  const btnSave = document.getElementById('btn-form-save');
-  const btnCancel = document.getElementById('btn-form-cancel');
-  
-  if (isBatch) {
-    standardFields.classList.add('hidden');
-    batchBlock.classList.remove('hidden');
-    btnSave.classList.add('hidden');
-    btnCancel.classList.add('hidden');
-    document.getElementById('form-page-title').textContent = 'Importação em Lote';
-  } else {
-    standardFields.classList.remove('hidden');
-    batchBlock.classList.add('hidden');
-    btnSave.classList.remove('hidden');
-    btnCancel.classList.remove('hidden');
-    document.getElementById('form-page-title').textContent = document.getElementById('form-record-id').value ? 'Editar Registro' : 'Novo Registro';
-  }
-}
-
-async function executarImportacaoEmLote() {
-  const textInput = document.getElementById('batch-text-input').value;
-  if (!textInput.trim()) {
-    showToast('Insira dados de texto válidos para processamento.', 'error');
-    return;
-  }
-
-  const linhas = textInput.split('\n');
-  let contagemSucesso = 0;
-
-  for (let i = 0; i < linhas.length; i++) {
-    const linha = linhas[i].trim();
-    if (!linha) continue;
-
-    const partes = linha.split(';');
-    const title = partes[0] ? partes[0].trim() : '';
-    
-    if (!title) continue;
-
-    const username = partes[1] ? partes[1].trim() : '';
-    const password = partes[2] ? partes[2] : '';
-    const optional01 = partes[3] ? partes[3].trim() : '';
-    const optional02 = partes[4] ? partes[4].trim() : '';
-    const notes = partes[5] ? partes[5].trim() : '';
-
-    const novoRegistro = {
-      id: crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2),
-      title,
-      username,
-      password,
-      optional01,
-      optional02,
-      type: 'login',
-      notes,
-      createdAt: Date.now(),
-      updatedAt: Date.now()
-    };
-
-    APP.db.records.push(novoRegistro);
-    contagemSucesso++;
-  }
-
-  if (contagemSucesso > 0) {
-    await Store.saveDB();
-    showToast(`${contagemSucesso} arquivos importados com sucesso!`, 'success');
-    
-    document.getElementById('batch-text-input').value = '';
-    document.getElementById('chk-batch-mode').checked = false;
-    toggleBatchMode(false);
-    showPage('records');
-  } else {
-    showToast('Nenhum registro estruturado pôde ser processado.', 'error');
-  }
-}
-
-// ─── FORMULÁRIO (INSERÇÃO / EDIÇÃO REGULAR) ───
 function abrirFormularioNovo() {
-  dinamizarElementosUI();
-  
-  document.getElementById('chk-batch-mode').checked = false;
-  toggleBatchMode(false);
-  document.getElementById('batch-toggle-container').classList.remove('hidden');
-
   document.getElementById('form-page-title').textContent = 'Novo Registro';
   document.getElementById('form-record-id').value = '';
   document.getElementById('form-title').value = '';
@@ -1196,25 +1102,100 @@ function abrirFormularioNovo() {
   document.getElementById('form-optional02').value = '';
   document.getElementById('form-notes').value = '';
   
-  const select = document.getElementById('form-type');
-  if (select && select.options.length > 0) {
-    select.selectedIndex = 0;
-  }
+  document.getElementById('chk-batch-mode').checked = false;
+  toggleBatchMode(false);
+  document.getElementById('batch-toggle-container').classList.remove('hidden');
+  
   showPage('form');
 }
 
-function editarRegistro(id) {
-  const r = APP.db.records.find(x => x.id === id);
-  if (!r) return;
+function toggleBatchMode(active) {
+  const std = document.getElementById('form-fields-standard');
+  const btc = document.getElementById('batch-import-block');
+  const btnSave = document.getElementById('btn-form-save');
+  if (active) {
+    std.classList.add('hidden');
+    btc.classList.remove('hidden');
+    btnSave.classList.add('hidden');
+  } else {
+    std.classList.remove('hidden');
+    btc.classList.add('hidden');
+    btnSave.classList.remove('hidden');
+  }
+}
 
-  dinamizarElementosUI();
+async function salvarFormulario() {
+  const id = document.getElementById('form-record-id').value;
+  const type = document.getElementById('form-type').value;
+  const title = document.getElementById('form-title').value.trim();
+  const username = document.getElementById('form-username').value.trim();
+  const password = document.getElementById('form-password').value;
+  const optional01 = document.getElementById('form-optional01').value.trim();
+  const optional02 = document.getElementById('form-optional02').value.trim();
+  const notes = document.getElementById('form-notes').value;
   
-  document.getElementById('chk-batch-mode').checked = false;
-  toggleBatchMode(false);
-  document.getElementById('batch-toggle-container').classList.add('hidden');
+  if (!title) { showToast('O campo Título é obrigatório.', 'error'); return; }
+  
+  if (id) {
+    const idx = APP.db.records.findIndex(r => r.id === id);
+    if (idx !== -1) {
+      APP.db.records[idx] = { ...APP.db.records[idx], type, title, username, password, optional01, optional02, notes, updatedAt: Date.now() };
+    }
+  } else {
+    const newRec = { id: crypto.randomUUID(), type, title, username, password, optional01, optional02, notes, createdAt: Date.now(), updatedAt: Date.now() };
+    APP.db.records.push(newRec);
+  }
+  
+  await Store.saveDB();
+  dinamizarElementosUI();
+  showPage('records');
+  showToast('Registro salvo com sucesso.', 'success');
+}
 
+async function executarImportacaoEmLote() {
+  const txt = document.getElementById('batch-text-input').value;
+  const type = document.getElementById('form-type').value;
+  if (!txt.trim()) { showToast('Insira dados válidos para processar.', 'error'); return; }
+  
+  const lines = txt.split('\n');
+  let count = 0;
+  
+  lines.forEach(line => {
+    if (!line.trim()) return;
+    const parts = line.split(';');
+    const title = parts[0] ? parts[0].trim() : '';
+    if (!title) return;
+    
+    const username = parts[1] ? parts[1].trim() : '';
+    const password = parts[2] ? parts[2] : '';
+    const optional01 = parts[3] ? parts[3].trim() : '';
+    const optional02 = parts[4] ? parts[4].trim() : '';
+    const notes = parts[5] ? parts[5].trim() : '';
+    
+    APP.db.records.push({
+      id: crypto.randomUUID(), type, title, username, password, optional01, optional02, notes, createdAt: Date.now(), updatedAt: Date.now()
+    });
+    count++;
+  });
+  
+  if (count > 0) {
+    await Store.saveDB();
+    document.getElementById('batch-text-input').value = '';
+    dinamizarElementosUI();
+    showPage('records');
+    showToast(`${count} registros importados em lote.`, 'success');
+  } else {
+    showToast('Nenhum registro estruturado foi localizado.', 'warn');
+  }
+}
+
+function editarRegistro(id) {
+  const r = APP.db.records.find(r => r.id === id);
+  if (!r) return;
+  
   document.getElementById('form-page-title').textContent = 'Editar Registro';
   document.getElementById('form-record-id').value = r.id;
+  document.getElementById('form-type').value = r.type;
   document.getElementById('form-title').value = r.title || '';
   document.getElementById('form-username').value = r.username || '';
   document.getElementById('form-password').value = r.password || '';
@@ -1222,248 +1203,124 @@ function editarRegistro(id) {
   document.getElementById('form-optional02').value = r.optional02 || '';
   document.getElementById('form-notes').value = r.notes || '';
   
-  const select = document.getElementById('form-type');
-  if (select) {
-    select.value = r.type || 'login';
-  }
+  document.getElementById('batch-toggle-container').classList.add('hidden');
+  toggleBatchMode(false);
+  
   showPage('form');
 }
 
-function cancelarFormulario() {
-  showPage('records');
+async function excluirRegistro(id) {
+  if (confirm("Confirma a eliminação permanente deste registro de senha?")) {
+    APP.db.records = APP.db.records.filter(r => r.id !== id);
+    await Store.saveDB();
+    dinamizarElementosUI();
+    showToast('Registro removido.', 'success');
+  }
 }
 
-async function salvarFormulario() {
-  const id = document.getElementById('form-record-id').value;
-  const title = document.getElementById('form-title').value.trim();
-  const username = document.getElementById('form-username').value.trim();
-  const password = document.getElementById('form-password').value;
-  const optional01 = document.getElementById('form-optional01').value.trim();
-  const optional02 = document.getElementById('form-optional02').value.trim();
-  const type = document.getElementById('form-type').value;
-  const notes = document.getElementById('form-notes').value;
+async function processarFormularioCategoria() {
+  const id = document.getElementById('edit-cat-id').value;
+  const name = document.getElementById('new-cat-name').value.trim();
+  const icon = document.getElementById('new-cat-icon').value;
+  
+  if (!name) { showToast('Insira um nome para a categoria.', 'error'); return; }
+  
+  if (id) {
+    const cat = APP.db.categories.find(c => c.id === id);
+    if (cat) { cat.label = name; cat.icon = icon; }
+    showToast('Categoria atualizada.', 'success');
+  } else {
+    const newId = name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-String]/g, '-');
+    if (APP.db.categories.some(c => c.id === newId)) { showToast('Identificador de categoria já existente.', 'warn'); return; }
+    APP.db.categories.push({ id: newId, label: name, icon: icon });
+    showToast('Categoria criada.', 'success');
+  }
+  
+  cancelarEdicaoCategoria();
+  await Store.saveDB();
+  dinamizarElementosUI();
+}
 
-  if (!title) {
-    showToast('O título do registro é obrigatório.', 'error');
+function editarCategoria(id) {
+  const cat = APP.db.categories.find(c => c.id === id);
+  if (!cat) return;
+  document.getElementById('category-manager-title').textContent = 'Editar Categoria';
+  document.getElementById('edit-cat-id').value = cat.id;
+  document.getElementById('new-cat-name').value = cat.label;
+  setMatrixSelectedIcon(cat.icon);
+  document.getElementById('btn-cat-save').textContent = '💾 Atualizar Categoria';
+  document.getElementById('btn-cat-cancel').classList.remove('hidden');
+}
+
+function cancelarEdicaoCategoria() {
+  document.getElementById('category-manager-title').textContent = 'Gerenciar Categorias';
+  document.getElementById('edit-cat-id').value = '';
+  document.getElementById('new-cat-name').value = '';
+  setMatrixSelectedIcon('🔑');
+  document.getElementById('btn-cat-save').textContent = '✨ Adicionar Categoria';
+  document.getElementById('btn-cat-cancel').classList.add('hidden');
+}
+
+async function excluirCategoria(id) {
+  if (DEFAULT_CATEGORIES.some(dc => dc.id === id)) return;
+  if (APP.db.records.some(r => r.type === id)) {
+    showToast('Não é permitido remover categorias vinculadas a registros ativos.', 'warn');
     return;
   }
-
-  if (id) {
-    const idx = APP.db.records.findIndex(x => x.id === id);
-    if (idx !== -1) {
-      APP.db.records[idx].title = title;
-      APP.db.records[idx].username = username;
-      APP.db.records[idx].password = password;
-      APP.db.records[idx].optional01 = optional01;
-      APP.db.records[idx].optional02 = optional02;
-      APP.db.records[idx].type = type;
-      APP.db.records[idx].notes = notes;
-      APP.db.records[idx].updatedAt = Date.now();
-      showToast('Registro updated com sucesso!', 'success');
-    }
-  } else {
-    const newRecord = {
-      id: crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2),
-      title,
-      username,
-      password,
-      optional01,
-      optional02,
-      type,
-      notes,
-      createdAt: Date.now(),
-      updatedAt: Date.now()
-    };
-    APP.db.records.push(newRecord);
-    showToast('Registro adicionado com sucesso!', 'success');
-  }
-
-  await Store.saveDB();
-  showPage('records');
-}
-
-async function excluirRegistro(id) {
-  if (!confirm('Confirma a exclusão definitiva deste registro?')) return;
-  
-  const idx = APP.db.records.findIndex(x => x.id === id);
-  if (idx !== -1) {
-    APP.db.records.splice(idx, 1);
+  if (confirm("Confirma a remoção definitiva desta categoria?")) {
+    APP.db.categories = APP.db.categories.filter(c => c.id !== id);
     await Store.saveDB();
-    showToast('Registro removido do banco de dados.', 'success');
-    refreshCurrentPage();
+    dinamizarElementosUI();
+    showToast('Categoria removida.', 'success');
   }
 }
 
-// ─── CLASSIFICAÇÃO / ORDENAÇÃO DE REGISTROS ───
-function toggleSort() {
-  APP.sortOrder = (APP.sortOrder === 'asc') ? 'desc' : 'asc';
-  const icon = document.getElementById('sort-icon');
-  if (icon) {
-    icon.textContent = 'sort_by_alpha';
-  }
-  showToast(`Ordenação: ${APP.sortOrder === 'asc' ? 'A-Z' : 'Z-A'}`, 'info');
-  renderRecords();
+async function alterarSenhaMestre() {
+  const curr = document.getElementById('change-pwd-current').value;
+  const n1 = document.getElementById('change-pwd-new').value;
+  const n2 = document.getElementById('change-pwd-confirm').value;
+  
+  if (!curr || !n1 || !n2) { showToast('Preencha os campos de senha.', 'error'); return; }
+  const localHash = localStorage.getItem(ADMIN_PASS_HASH_KEY);
+  if (await Crypto.hashPassword(curr) !== localHash) { showToast('Senha atual incorreta.', 'error'); return; }
+  if (n1 !== n2) { showToast('As novas senhas não coincidem.', 'error'); return; }
+  if (n1.length < 4) { showToast('A nova senha deve possuir ao menos 4 caracteres.', 'warn'); return; }
+  
+  const user = localStorage.getItem(ADMIN_USER_KEY);
+  const newHash = await Crypto.hashPassword(n1);
+  localStorage.setItem(ADMIN_PASS_HASH_KEY, newHash);
+  
+  APP.encKey = await Crypto.deriveKey(n1, user);
+  await Store.saveDB();
+  
+  document.getElementById('change-pwd-current').value = '';
+  document.getElementById('change-pwd-new').value = '';
+  document.getElementById('change-pwd-confirm').value = '';
+  showToast('Senha Master alterada e dados re-criptografados.', 'success');
 }
 
-// ─── RENDERIZADORES VISUAIS ───
-function renderDashboard() {
+async function exportData() {
   if (!APP.db) return;
-  const records = APP.db.records || [];
-  document.getElementById('stat-total').textContent = records.length;
-  document.getElementById('stat-bank').textContent = records.filter(r=>r.type=='bank').length;
-  document.getElementById('stat-sites').textContent = records.filter(r=>r.type=='site').length;
-  document.getElementById('stat-logins').textContent = records.filter(r=>r.type=='login').length;
-
-  const recent = [...records].sort((a,b)=>(b.updatedAt||b.createdAt)-(a.updatedAt||a.createdAt)).slice(0,5);
-  const rl = document.getElementById('recent-list');
-  rl.innerHTML = recent.length ? recent.map(r=>recordCardHTML(r)).join('') : '<div class="empty-state"><div class="empty-text">Nenhum arquivo encontrado.</div></div>';
+  try {
+    const str = JSON.stringify(APP.db, null, 2);
+    const blob = new Blob([str], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `pwarruda_export_${Date.now()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('Arquivo exportado.', 'success');
+  } catch(e) { showToast('Falha na exportação.', 'error'); }
 }
 
-function getFilteredRecords() {
-  if (!APP.db) return [];
-  let recs = [...APP.db.records];
-  
-  if (APP.currentFilter !== 'all') recs = recs.filter(r => r.type === APP.currentFilter);
-  if (APP.searchQuery) {
-    const q = APP.searchQuery.toLowerCase();
-    recs = recs.filter(r => 
-      (r.title||'').toLowerCase().includes(q) || 
-      (r.username||'').toLowerCase().includes(q) || 
-      (r.optional01||'').toLowerCase().includes(q) || 
-      (r.optional02||'').toLowerCase().includes(q) || 
-      (r.notes||'').toLowerCase().includes(q)
-    );
-  }
-
-  recs.sort((a, b) => {
-    const titleA = a.title || '';
-    const titleB = b.title || '';
-    return APP.sortOrder === 'asc' ? titleA.localeCompare(titleB, 'pt-BR') : titleB.localeCompare(titleA, 'pt-BR');
-  });
-
-  return recs;
-}
-
-function renderRecords() {
-  const list = document.getElementById('records-list');
-  if (!list) return;
-  const recs = getFilteredRecords();
-  list.innerHTML = recs.length ? recs.map(r=>recordCardHTML(r)).join('') : '<div class="empty-state"><div class="empty-text">Vazio.</div></div>';
-}
-
-function formatarDataExibicao(timestamp) {
-  if (!timestamp) return 'N/A';
-  const d = new Date(timestamp);
-  return d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
-}
-
-function recordCardHTML(r) {
-  let typeLabel = 'Outro';
-  let typeIcon = '📁';
-  
-  if (APP.db && APP.db.categories) {
-    const cat = APP.db.categories.find(c => c.id === r.type);
-    if (cat) {
-      typeLabel = cat.label;
-      typeIcon = cat.icon || '📁';
-    }
-  }
-  
-  const ultimaEdicao = formatarDataExibicao(r.updatedAt || r.createdAt);
-  
-  let optionalsHTML = '';
-  if ((r.optional01 && r.optional01.trim()) || (r.optional02 && r.optional02.trim())) {
-    optionalsHTML = `<div class="record-optional-block">`;
-    if (r.optional01 && r.optional01.trim()) optionalsHTML += `<span><strong>OPC1:</strong> ${escHtml(r.optional01)}</span>`;
-    if (r.optional02 && r.optional02.trim()) optionalsHTML += `<span><strong>OPC2:</strong> ${escHtml(r.optional02)}</span>`;
-    optionalsHTML += `</div>`;
-  }
-
-  let notesHTML = '';
-  if (r.notes && r.notes.trim()) {
-    notesHTML = `<div class="record-notes">${escHtml(r.notes)}</div>`;
-  }
-  
-  return `<div class="record-card">
-    <div class="record-icon">${escHtml(typeIcon)}</div>
-    <div class="record-info">
-      <div class="record-title">${escHtml(r.title)}</div>
-      <div class="record-sub">${escHtml(r.username||'')}</div>
-      ${optionalsHTML}
-      ${notesHTML}
-      <div class="record-meta">
-        <span class="tag">${escHtml(typeLabel)}</span>
-        <span class="date-label">Modificado: ${ultimaEdicao}</span>
-      </div>
-    </div>
-    <div class="record-actions">
-      <button class="btn btn-icon btn-secondary btn-sm" onclick="copyPassword('${r.id}')" title="Copiar Senha">📋</button>
-      <button class="btn btn-icon btn-secondary btn-sm" onclick="editarRegistro('${r.id}')" title="Editar">✏️</button>
-      <button class="btn btn-icon btn-danger btn-sm" onclick="excluirRegistro('${r.id}')" title="Excluir">🗑️</button>
-    </div>
-  </div>`;
-}
-
-function setFilter(f, el) {
-  APP.currentFilter = f;
-  document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
-  if (el) el.classList.add('active');
-  renderRecords();
-}
-
-function doSearch(q) {
-  APP.searchQuery = q;
-  renderRecords();
-}
-
-function copyPassword(id) {
-  const r = APP.db.records.find(x=>x.id===id);
-  if (r && r.password) {
-    navigator.clipboard.writeText(r.password);
-    showToast('Senha copiada para a área de transferência!', 'success');
-  }
-}
-
-// ─── CONFIGURAÇÕES AUXILIARES ───
-function loadSettingsUI() {
-  if (document.getElementById('tog-autolock')) document.getElementById('tog-autolock').checked = !!APP.settings.autolock;
-  if (document.getElementById('sel-timeout')) document.getElementById('sel-timeout').value = APP.settings.timeout || 15;
-}
-
-function setupAutoLock() {
-  clearLockTimer();
-  if (APP.settings.autolock) {
-    const ms = (APP.settings.timeout || 15) * 60 * 1000;
-    APP.lockTimer = setTimeout(() => { doLogout(); showToast('Sessão encerrada por inatividade.', 'info'); }, ms);
-  }
-}
-
-function clearLockTimer() { if (APP.lockTimer) clearTimeout(APP.lockTimer); }
-
-function updateSyncIndicator() {
-  const ind = document.getElementById('sync-indicator');
-  if (ind) { 
-    ind.style.color = 'var(--success)';
-    setTimeout(() => ind.style.color = '', 1000); 
-  }
-}
-
-function exportData() {
-  if(!APP.db) return;
-  const blob = new Blob([JSON.stringify(APP.db, null, 2)], {type: 'application/json'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'backup_seguro.json';
-  a.click();
-}
-
-function importData(e) {
-  const file = e.target.files[0];
+async function importData(evt) {
+  const file = evt.target.files[0];
   if (!file) return;
   const reader = new FileReader();
-  reader.onload = async function(evt) {
+  reader.onload = async function(e) {
     try {
-      const parsed = JSON.parse(evt.target.result);
+      const parsed = JSON.parse(e.target.result);
       if (parsed && parsed.records) {
         APP.db = parsed;
         if (!APP.db.categories || APP.db.categories.length === 0) {
@@ -1487,8 +1344,8 @@ function confirmClearData() {
   }
 }
 
-// ─── UTILITÁRIOS ───
 function escHtml(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
 function togglePwd(id, btn) {
   const inp = document.getElementById(id);
   if (!inp) return;
@@ -1496,14 +1353,20 @@ function togglePwd(id, btn) {
   else { inp.type = 'password'; if(btn) btn.textContent = '👁'; }
 }
 
-let toastTimer;
-function showToast(msg, type='info') {
-  const el = document.getElementById('toast');
-  if (!el) return;
-  clearTimeout(toastTimer);
-  el.textContent = msg;
-  el.className = `toast-${type} show`;
-  toastTimer = setTimeout(() => el.classList.remove('show'), 2800);
+function copiarTexto(txt) {
+  navigator.clipboard.writeText(txt).then(() => {
+    showToast('Texto copiado para a área de transferência.', 'success');
+  }).catch(() => {
+    showToast('Falha ao copiar texto automaticamente.', 'error');
+  });
+}
+
+function showToast(msg, type = 'info') {
+  const t = document.getElementById('toast');
+  if (!t) return;
+  t.className = `toast-${type} show`;
+  t.textContent = msg;
+  setTimeout(() => { t.classList.remove('show'); }, 3000);
 }
 </script>
 </body>
