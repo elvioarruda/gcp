@@ -182,17 +182,6 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
   #app{max-width:720px;margin:0 auto;box-shadow:0 0 60px rgba(0,0,0,.5)}
 }
 
-.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:1.5rem}
-.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;text-align:center}
-.stat-num{font-size:1.75rem;font-weight:700;color:var(--primary-light)}
-.stat-lbl{font-size:.7rem;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-top:.25rem}
-
-.drive-status{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;margin-bottom:1rem;display:flex;align-items:center;gap:.75rem}
-.drive-icon{font-size:1.75rem}
-.drive-info{flex:1}
-.drive-name{font-size:.85rem;font-weight:600}
-.drive-sub{font-size:.75rem;color:var(--text3);margin-top:.2rem}
-
 /* ─── CUSTOM ICON SELECTION MATRIX (5 COLUMNS) ─── */
 .icon-selection-matrix {
   display: grid;
@@ -266,18 +255,7 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
 
   <div id="main" class="hidden">
 
-    <div class="page active" id="page-home">
-      <div class="stats-grid">
-        <div class="stat-card"><div class="stat-num" id="stat-total">0</div><div class="stat-lbl">Total</div></div>
-        <div class="stat-card"><div class="stat-num" id="stat-bank">0</div><div class="stat-lbl">Banco</div></div>
-        <div class="stat-card"><div class="stat-num" id="stat-sites">0</div><div class="stat-lbl">Sites</div></div>
-        <div class="stat-card"><div class="stat-num" id="stat-logins">0</div><div class="stat-lbl">Logins</div></div>
-      </div>
-      <div class="section-hdr"><span class="section-title">Adicionados Recentemente</span></div>
-      <div id="recent-list"></div>
-    </div>
-
-    <div class="page" id="page-records">
+    <div class="page active" id="page-records">
       <div class="section-hdr">
         <span class="section-title">Meus Registros</span>
         <div style="display:flex; gap:.5rem">
@@ -506,10 +484,7 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
   </div>
 
   <div id="bottom-nav" class="hidden">
-    <button class="nav-item active" id="nav-home" onclick="showPage('home')">
-      <span class="nav-icon material-symbols-outlined">home</span><span>Início</span>
-    </button>
-    <button class="nav-item" id="nav-records" onclick="showPage('records')">
+    <button class="nav-item active" id="nav-records" onclick="showPage('records')">
       <span class="nav-icon material-symbols-outlined">vpn_key</span><span>Registros</span>
     </button>
     <button class="nav-item" id="nav-categories" onclick="showPage('categories')">
@@ -534,7 +509,7 @@ const APP = {
   get fullName(){ return `${this.name} Build ${this.build}` },
   encKey: null,
   db: null,
-  currentPage: 'home',
+  currentPage: 'records',
   currentFilter: 'all',
   searchQuery: '',
   sortOrder: 'asc',
@@ -818,7 +793,7 @@ async function doLogin() {
   }
   
   dinamizarElementosUI();
-  showPage('home');
+  showPage('records');
   setupAutoLock();
   showToast('Autenticação realizada.', 'success');
 }
@@ -868,7 +843,6 @@ window.addEventListener('keypress', resetAutoLockTimer);
 function dinamizarElementosUI() {
   if (!APP.db) return;
   
-  // Ordenação alfabética crescente das categorias usando localeCompare
   APP.db.categories.sort((a, b) => a.label.localeCompare(b.label, 'pt-BR'));
   
   const select = document.getElementById('form-type');
@@ -900,38 +874,8 @@ function dinamizarElementosUI() {
     });
   }
   
-  renderHomeStats();
   renderRecordsList();
   renderCategoryManager();
-}
-
-function renderHomeStats() {
-  if (!APP.db) return;
-  const tot = APP.db.records.length;
-  document.getElementById('stat-total').textContent = tot;
-  
-  let bank = 0, site = 0, login = 0;
-  APP.db.records.forEach(r => {
-    if (r.type === 'bank') bank++;
-    if (r.type === 'site') site++;
-    if (r.type === 'login') login++;
-  });
-  
-  document.getElementById('stat-bank').textContent = bank;
-  document.getElementById('stat-sites').textContent = site;
-  document.getElementById('stat-logins').textContent = login;
-  
-  const sortedRecent = [...APP.db.records].sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
-  const recentSlice = sortedRecent.slice(0, 3);
-  const container = document.getElementById('recent-list');
-  if (!container) return;
-  container.innerHTML = '';
-  
-  if (recentSlice.length === 0) {
-    container.innerHTML = '<div class="empty-state"><p class="empty-text">Nenhum registro adicionado recentemente.</p></div>';
-    return;
-  }
-  recentSlice.forEach(r => container.appendChild(createRecordCardElement(r)));
 }
 
 function renderRecordsList() {
@@ -1023,7 +967,6 @@ function renderCategoryManager() {
   container.innerHTML = '';
   if (!APP.db) return;
   
-  // Ordenação alfabética crescente antes de renderizar a gerência de categorias
   APP.db.categories.sort((a, b) => a.label.localeCompare(b.label, 'pt-BR'));
   
   APP.db.categories.forEach(c => {
