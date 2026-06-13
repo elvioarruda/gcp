@@ -109,18 +109,15 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
 .section-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;margin-top:.5rem}
 .section-title{font-size:1rem;font-weight:700;color:var(--text)}
 
+/* Ajustado para permitir quebra de linhas dentro do frame do aplicativo */
 .filter-row {
   display: flex;
-  gap: 0.6rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
   margin-bottom: 1.25rem;
-  overflow-x: auto;
-  padding-bottom: 0.4rem;
-  scrollbar-width: none;
-}
-.filter-row::-webkit-scrollbar {
-  display: none;
 }
 
+/* Ajustado para garantir largura flexível dependendo do comprimento do texto */
 .filter-chip {
   font-size: 0.75rem;
   font-weight: 600;
@@ -132,7 +129,7 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
   cursor: pointer;
   white-space: nowrap;
   transition: all 0.2s ease;
-  min-width: 85px;
+  width: auto;
   text-align: center;
 }
 .filter-chip.active {
@@ -540,7 +537,7 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
 
 const APP = {
   name: 'PWARRUDA V2',
-  build: '25',
+  build: '26',
   get fullName(){ return `${this.name} Build ${this.build}` },
   encKey: null,
   db: null,
@@ -1021,7 +1018,7 @@ async function processarFormularioCategoria() {
     if (cat) {
       cat.label = nameVal;
       cat.icon = iconVal;
-      showToast('Categoria atualizada.', 'success');
+      showToast('Categoria updated.', 'success');
     }
     cancelarEdicaoCategoria();
   } else {
