@@ -223,13 +223,13 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
       <div id="login-error" class="error-msg" style="margin-bottom:.75rem"></div>
       <button class="btn btn-primary btn-full" onclick="doLogin()">Entrar</button>
     </div>
-    <div class="version-badge" id="login-version">PWARRUDA V2 Build 22</div>
+    <div class="version-badge" id="login-version">PWARRUDA V2 Build 16</div>
   </div>
 
   <div id="topbar" class="hidden">
     <span class="topbar-logo">🔐 PWA</span>
     <input type="search" class="topbar-search" id="search-input" placeholder="Buscar..." oninput="doSearch(this.value)">
-    <span class="sync-status material-symbols-outlined" id="sync-indicator" title="Sincronização local ativa">sync_saved_locally</span>
+    <span class="sync-status material-symbols-outlined" id="sync-indicator" title="Sincronização local activa">sync_saved_locally</span>
     <button class="btn btn-icon btn-secondary" onclick="doLogout()" title="Sair do Aplicativo">
       <span class="material-symbols-outlined">logout</span>
     </button>
@@ -694,7 +694,7 @@ async function carregarArquivoExistente() {
 }
 
 async function lerDadosDoArquivoVinculado() {
-  if (!APP.fileHandle) return;
+  if (!APP.fileHandle || !APP.encKey) return;
   try {
     if (!(await verificarPermissaoArquivo(APP.fileHandle, false))) {
       showToast('Permissão de leitura negada.', 'error');
@@ -723,7 +723,7 @@ async function lerDadosDoArquivoVinculado() {
 }
 
 async function gravarDadosNoArquivoVinculado() {
-  if (!APP.fileHandle || !APP.db) return;
+  if (!APP.fileHandle || !APP.db || !APP.encKey) return;
   try {
     if (!(await verificarPermissaoArquivo(APP.fileHandle, true))) return;
     const textoCriptografado = await Crypto.encrypt(APP.db, APP.encKey);
@@ -791,13 +791,13 @@ function carregarReferenciaArquivoSalva() {
 async function alterarSenhaMestre() {
   const senhaAtual = document.getElementById('change-pwd-current').value;
   const novaSenha = document.getElementById('change-pwd-new').value;
-  const confirmacaoSenha = document.getElementById('change-pwd-confirm').value;
+  const confirmaçãoSenha = document.getElementById('change-pwd-confirm').value;
 
-  if (!senhaAtual || !novaSenha || !confirmacaoSenha) {
+  if (!senhaAtual || !novaSenha || !confirmaçãoSenha) {
     showToast('Preencha todos os campos para realizar a alteração.', 'error');
     return;
   }
-  if (novaSenha !== confirmacaoSenha) {
+  if (novaSenha !== confirmaçãoSenha) {
     showToast('A nova senha e a confirmação não coincidem.', 'error');
     return;
   }
@@ -870,14 +870,14 @@ async function doLogin() {
     await Store.loadDB();
 
     sessionStorage.setItem(SESSION_KEY, JSON.stringify({ user, ts: Date.now() }));
-    await initApp();
+    initApp();
   } catch(e) {
     console.error(e);
     if (errEl) errEl.textContent = 'Erro no processamento criptográfico.';
   }
 }
 
-async function doLogout() {
+function doLogout() {
   APP.encKey = null;
   APP.db = null;
   APP.fileHandle = null;
@@ -895,7 +895,7 @@ async function doLogout() {
   updateVersionDisplay();
 }
 
-async function initApp() {
+function initApp() {
   document.getElementById('login-screen').classList.add('hidden');
   document.getElementById('topbar').classList.remove('hidden');
   document.getElementById('main').classList.remove('hidden');
@@ -910,10 +910,11 @@ async function initApp() {
   renderCategoryManager();
   setupAutoLock();
 
-  await carregarReferenciaArquivoSalva();
-  if (APP.fileHandle) {
-    await lerDadosDoArquivoVinculado();
-  }
+  carregarReferenciaArquivoSalva().then(() => {
+    if (APP.fileHandle) {
+      lerDadosDoArquivoVinculado();
+    }
+  });
 }
 
 // ─── GERENCIAMENTO DINÂMICO DE CATEGORIAS ───
@@ -979,7 +980,7 @@ async function processarFormularioCategoria() {
     if (cat) {
       cat.label = nameVal;
       cat.icon = iconVal;
-      showToast('Categoria updated.', 'success');
+      showToast('Categoria atualizada.', 'success');
     }
     cancelarEdicaoCategoria();
   } else {
@@ -1467,43 +1468,11 @@ function showToast(msg, type='info') {
 }
 
 // ─── AUTO RUNS ───
-window.onload = async () => {
+window.onload = () => {
   updateVersionDisplay();
-  const sessionRaw = sessionStorage.getItem(SESSION_KEY);
-  if (sessionRaw) {
-    try {
-      const session = JSON.parse(sessionRaw);
-      if (session && session.user && (Date.now() - session.ts < 2 * 60 * 60 * 1000)) {
-        let storedUser = localStorage.getItem(ADMIN_USER_KEY);
-        if (session.user === storedUser) {
-          showToast('Sessão restaurada automaticamente.', 'info');
-          // Correção do fluxo de restauração automática da sessão
-          Store.loadSettings();
-          await Store.loadDB();
-          
-          document.getElementById('login-screen').classList.add('hidden');
-          document.getElementById('topbar').classList.remove('hidden');
-          document.getElementById('main').classList.remove('hidden');
-          document.getElementById('bottom-nav').classList.remove('hidden');
-
-          dinamizarElementosUI();
-          renderDashboard();
-          renderRecords();
-          loadSettingsUI();
-          renderCategoryManager();
-          setupAutoLock();
-
-          await carregarReferenciaArquivoSalva();
-          if (APP.fileHandle) {
-            await lerDadosDoArquivoVinculado();
-          }
-          return;
-        }
-      }
-    } catch(e) {
-      console.error("Erro ao tentar restaurar a sessão:", e);
-    }
-  }
+  // Sessões automáticas sem preenchimento de senha violam a derivação de chave criptográfica (APP.encKey).
+  // Removida a restauração automática do ciclo inicial para forçar o login íntegro.
+  sessionStorage.removeItem(SESSION_KEY);
 };
 </script>
 </body>
