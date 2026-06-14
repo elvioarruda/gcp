@@ -70,7 +70,8 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
 .error-msg{color:var(--danger);font-size:.8rem;margin-top:.4rem}
 
 /* ─── TOPBAR ─── */
-#topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:.75rem 1rem;display:flex;align-items:center;gap:.6rem;position:sticky;top:0;z-index:100;max-width:100vw;overflow:hidden}
+#topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:.75rem 1rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;max-width:100vw;overflow:hidden}
+.topbar-left{display:flex;align-items:center;gap:.6rem;flex:1;min-width:0}
 .topbar-logo{font-weight:700;color:var(--primary-light);font-size:.85rem;white-space:nowrap;letter-spacing:.02em}
 .topbar-search{max-width:240px;flex:1;min-width:0;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.5rem .75rem;color:var(--text);font-size:.85rem;outline:none}
 .topbar-search:focus{border-color:var(--primary)}
@@ -245,9 +246,11 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
   </div>
 
   <div id="topbar" class="hidden">
-    <span class="topbar-logo">🔐 PWA</span>
-    <input type="search" class="topbar-search" id="search-input" placeholder="Buscar..." oninput="doSearch(this.value)">
-    <span class="sync-status material-symbols-outlined" id="sync-indicator" title="Sincronização local activa">search</span>
+    <div class="topbar-left">
+      <span class="topbar-logo">🔐 PWA</span>
+      <input type="search" class="topbar-search" id="search-input" placeholder="Buscar..." oninput="doSearch(this.value)">
+      <span class="sync-status material-symbols-outlined" id="sync-indicator" title="Sincronização local activa">search</span>
+    </div>
     <button class="btn btn-icon btn-secondary" onclick="doLogout()" title="Sair do Aplicativo">
       <span class="material-symbols-outlined">logout</span>
     </button>
@@ -311,6 +314,7 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
               <div class="matrix-option-cell" data-icon="☁️">☁️</div>
               <div class="matrix-option-cell" data-icon="💻">💻</div>
               <div class="matrix-option-cell" data-icon="🖨️">🖨️</div>
+              <div class="matrix-option-cell" data-icon="📦">📦</div>
             </div>
           </div>
 
@@ -508,7 +512,7 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
 <script>
 const APP = {
   name: 'PWARRUDA',
-  build: '030',
+  build: '032',
   get fullName(){ return `${this.name} Build ${this.build}` },
   encKey: null,
   db: null,
@@ -1023,6 +1027,18 @@ function showPage(p) {
   const targetNav = document.getElementById(`nav-${p}`);
   if (targetNav) targetNav.classList.add('active');
   
+  const searchInput = document.getElementById('search-input');
+  const syncIndicator = document.getElementById('sync-indicator');
+  if (searchInput) {
+    if (p === 'records') {
+      searchInput.classList.remove('hidden');
+      if (syncIndicator) syncIndicator.classList.remove('hidden');
+    } else {
+      searchInput.classList.add('hidden');
+      if (syncIndicator) syncIndicator.classList.add('hidden');
+    }
+  }
+  
   if (p === 'settings') {
     const chk = document.getElementById('tog-autolock');
     if (chk) chk.checked = !!APP.settings.autolock;
@@ -1220,7 +1236,7 @@ function cancelarEdicaoCategoria() {
 async function excluirCategoria(id) {
   if (DEFAULT_CATEGORIES.some(dc => dc.id === id)) return;
   if (APP.db.records.some(r => r.type === id)) {
-    showToast('Não é permitido remover categorias vinculadas a registros ativos.', 'warn');
+    showToast('Não é permitido remover categorias vinculadas a registros activos.', 'warn');
     return;
   }
   if (confirm("Confirma a remoção definitiva desta categoria?")) {
