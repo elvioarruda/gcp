@@ -247,7 +247,7 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
   <div id="topbar" class="hidden">
     <span class="topbar-logo">🔐 PWA</span>
     <input type="search" class="topbar-search" id="search-input" placeholder="Buscar..." oninput="doSearch(this.value)">
-    <span class="sync-status material-symbols-outlined" id="sync-indicator" title="Sincronização local activa">sync_saved_locally</span>
+    <span class="sync-status material-symbols-outlined" id="sync-indicator" title="Sincronização local activa">search</span>
     <button class="btn btn-icon btn-secondary" onclick="doLogout()" title="Sair do Aplicativo">
       <span class="material-symbols-outlined">logout</span>
     </button>
@@ -484,7 +484,7 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
   </div>
 
   <div id="bottom-nav" class="hidden">
-    <button class="nav-item active" id="nav-records" onclick="showPage('records')">
+    <button class="nav-item" id="nav-records" onclick="showPage('records')">
       <span class="nav-icon material-symbols-outlined">vpn_key</span><span>Registros</span>
     </button>
     <button class="nav-item" id="nav-categories" onclick="showPage('categories')">
@@ -505,11 +505,11 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
 <script>
 const APP = {
   name: 'PWARRUDA',
-  build: '028',
+  build: '029',
   get fullName(){ return `${this.name} Build ${this.build}` },
   encKey: null,
   db: null,
-  currentPage: 'records',
+  currentPage: 'sync',
   currentFilter: 'all',
   searchQuery: '',
   sortOrder: 'asc',
@@ -743,12 +743,8 @@ function updateSyncIndicator() {
   const ind = document.getElementById('sync-indicator');
   if (!ind) return;
   if (APP.fileHandle) {
-    ind.textContent = "sync";
-    ind.style.color = "var(--success)";
     ind.title = `Sincronia ativa com: ${APP.fileName}`;
   } else {
-    ind.textContent = "sync_saved_locally";
-    ind.style.color = "var(--text3)";
     ind.title = "Sincronização apenas em LocalStorage";
   }
 }
@@ -793,7 +789,7 @@ async function doLogin() {
   }
   
   dinamizarElementosUI();
-  showPage('records');
+  showPage('sync');
   setupAutoLock();
   showToast('Autenticação realizada.', 'success');
 }
@@ -1050,6 +1046,17 @@ function abrirFormularioNovo() {
   document.getElementById('batch-toggle-container').classList.remove('hidden');
   
   showPage('form');
+}
+
+function cancelarFormulario() {
+  document.getElementById('form-record-id').value = '';
+  document.getElementById('form-title').value = '';
+  document.getElementById('form-username').value = '';
+  document.getElementById('form-password').value = '';
+  document.getElementById('form-optional01').value = '';
+  document.getElementById('form-optional02').value = '';
+  document.getElementById('form-notes').value = '';
+  showPage('records');
 }
 
 function toggleBatchMode(active) {
