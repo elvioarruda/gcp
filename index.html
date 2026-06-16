@@ -557,7 +557,6 @@ function handleLoginSubmit(event) {
   if (typeof doLogin === "function") {
     doLogin();
     
-    // Pequeno atraso para o motor do Chrome indexar o envio antes do reset
     setTimeout(() => {
       window.location.hash = "dashboard";
       form.reset();
@@ -800,7 +799,6 @@ async function doLogin() {
   
   sessionStorage.setItem(SESSION_KEY, 'active');
   
-  // Atraso intencional para permitir que o Chrome capture as credenciais antes da ocultação do DOM
   setTimeout(() => {
     document.getElementById('login-screen').classList.add('hidden');
     document.getElementById('topbar').classList.remove('hidden');
@@ -920,9 +918,16 @@ function renderRecordsList() {
   if (titleContainer) {
     let dateStr = "Nenhuma";
     if (maxTimestamp > 0) {
-      dateStr = new Date(maxTimestamp).toLocaleDateString('pt-BR');
+      const d = new Date(maxTimestamp);
+      const day = String(d.getDate()).padStart(2, '0');
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const year = String(d.getFullYear()).slice(-2);
+      const hours = String(d.getHours()).padStart(2, '0');
+      const minutes = String(d.getMinutes()).padStart(2, '0');
+      const seconds = String(d.getSeconds()).padStart(2, '0');
+      dateStr = `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
     }
-    titleContainer.textContent = `Total de Registros: ${totalRecordsCount} - Última Atualização em: ${dateStr}`;
+    titleContainer.textContent = `Total de Registros: ${totalRecordsCount} - Atualizado em: ${dateStr}`;
   }
   
   let filtered = APP.db.records.filter(r => {
@@ -1160,7 +1165,7 @@ async function salvarFormulario() {
   showToast('Registro salvo com sucesso.', 'success');
 }
 
-async function executarImportacaoEmLote() {
+async function ejecutarImportacaoEmLote() {
   const txt = document.getElementById('batch-text-input').value;
   const type = document.getElementById('form-type').value;
   if (!txt.trim()) { showToast('Insira dados válidos para processar.', 'error'); return; }
