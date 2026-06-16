@@ -107,8 +107,9 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
 .date-label{color:var(--text3);font-size:.65rem}
 
 /* ─── SECTION HEADER & CHIPS ─── */
-.section-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;margin-top:.5rem}
+.section-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:0.25rem;margin-top:.5rem}
 .section-title{font-size:1rem;font-weight:700;color:var(--text)}
+.section-subtitle{font-size:0.75rem;color:var(--text2);margin-bottom:1rem;font-weight:500}
 
 .filter-row {
   display: flex;
@@ -270,6 +271,7 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
           </button>
         </div>
       </div>
+      <div class="section-subtitle" id="page-records-subtitle">Último acesso: --/--/-- --:--:-- - Atualizado em: --/--/-- --:--:--</div>
       <div class="filter-row" id="filter-row"></div>
       <div id="records-list"></div>
     </div>
@@ -512,7 +514,7 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
 <script>
 const APP = {
   name: 'PWARRUDA',
-  build: '035',
+  build: '037',
   get fullName(){ return `${this.name} Build ${this.build}` },
   encKey: null,
   db: null,
@@ -531,6 +533,7 @@ const ADMIN_PASS_HASH_KEY = 'pwarruda_admin_hash';
 const DB_KEY = 'pwarruda_db';
 const SETTINGS_KEY = 'pwarruda_settings';
 const SESSION_KEY = 'pwarruda_session';
+const LAST_ACCESS_TIMESTAMP_KEY = 'pwarruda_last_access';
 
 const DEFAULT_CATEGORIES = [
   { id: 'bank', label: 'Banco', icon: '🏦' },
@@ -797,7 +800,9 @@ async function doLogin() {
     await Store.loadDB();
   }
   
+  const currentAccessTime = Date.now();
   sessionStorage.setItem(SESSION_KEY, 'active');
+  sessionStorage.setItem(LAST_ACCESS_TIMESTAMP_KEY, currentAccessTime.toString());
   
   setTimeout(() => {
     document.getElementById('login-screen').classList.add('hidden');
@@ -836,6 +841,7 @@ function doLogout() {
     APP.fileHandle = null;
     APP.fileName = null;
     sessionStorage.removeItem(SESSION_KEY);
+    sessionStorage.removeItem(LAST_ACCESS_TIMESTAMP_KEY);
     if (APP.lockTimer) clearTimeout(APP.lockTimer);
     document.getElementById('login-pass').value = '';
     document.getElementById('login-error').textContent = '';
@@ -901,33 +907,43 @@ function dinamizarElementosUI() {
   renderCategoryManager();
 }
 
+function formatarDateTime(timestamp) {
+  if (!timestamp) return "--/--/-- --:--:--";
+  const d = new Date(timestamp);
+  const day = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const year = String(d.getFullYear()).slice(-2);
+  const hours = String(d.getHours()).padStart(2, '0');
+  const minutes = String(d.getMinutes()).padStart(2, '0');
+  const seconds = String(d.getSeconds()).padStart(2, '0');
+  return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
+}
+
 function renderRecordsList() {
   const container = document.getElementById('records-list');
   const titleContainer = document.getElementById('page-records-title');
+  const subtitleContainer = document.getElementById('page-records-subtitle');
   if (!container) return;
   container.innerHTML = '';
   if (!APP.db) return;
 
   const totalRecordsCount = APP.db.records.length;
-  let maxTimestamp = 0;
+  let maxTimestamp = APP.db.lastModified || 0;
+  
   APP.db.records.forEach(r => {
     const t = r.updatedAt || r.createdAt || 0;
     if (t > maxTimestamp) maxTimestamp = t;
   });
 
   if (titleContainer) {
-    let dateStr = "Nenhuma";
-    if (maxTimestamp > 0) {
-      const d = new Date(maxTimestamp);
-      const day = String(d.getDate()).padStart(2, '0');
-      const month = String(d.getMonth() + 1).padStart(2, '0');
-      const year = String(d.getFullYear()).slice(-2);
-      const hours = String(d.getHours()).padStart(2, '0');
-      const minutes = String(d.getMinutes()).padStart(2, '0');
-      const seconds = String(d.getSeconds()).padStart(2, '0');
-      dateStr = `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
-    }
-    titleContainer.textContent = `Total de Registros: ${totalRecordsCount} - Atualizado em: ${dateStr}`;
+    titleContainer.textContent = `Total de Registros: ${totalRecordsCount}`;
+  }
+
+  if (subtitleContainer) {
+    const sessionAccess = sessionStorage.getItem(LAST_ACCESS_TIMESTAMP_KEY);
+    const accessStr = sessionAccess ? formatarDateTime(parseInt(sessionAccess)) : "--/--/-- --:--:--";
+    const updateStr = maxTimestamp > 0 ? formatarDateTime(maxTimestamp) : "--/--/-- --:--:--";
+    subtitleContainer.textContent = `Último acesso: ${accessStr} - Atualizado em: ${updateStr}`;
   }
   
   let filtered = APP.db.records.filter(r => {
