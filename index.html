@@ -262,7 +262,7 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
     <div class="page active" id="page-records">
       <div class="section-hdr">
         <span class="section-title" id="page-records-title">Total de Registros: 0</span>
-        <div style="display:flex; gap:.5rem">
+        <div style="display:flex; flex-direction:column; align-items:flex-end; gap:.5rem">
           <button class="btn btn-primary btn-sm" onclick="abrirFormularioNovo()" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" title="Adicionar Novo Registro">
             <span class="material-symbols-outlined" style="font-size:16px; margin-right:2px">add</span> Novo
           </button>
@@ -465,7 +465,7 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
       </div>
 
       <div class="settings-section">
-        <div class="settings-title">Segurança</div>
+        <div class="settings-title">Security</div>
         <div class="settings-row">
           <div><div class="settings-label">Auto-lock</div><div class="settings-sublabel">Bloquear após inatividade</div></div>
           <label class="toggle"><input type="checkbox" id="tog-autolock" onchange="saveSetting('autolock',this.checked)"><span class="toggle-slider"></span></label>
