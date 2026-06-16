@@ -440,7 +440,7 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
         <div class="form-group" style="margin-top:0.5rem">
           <label>Senha Atual</label>
           <div class="pwd-field">
-            <input type="password" id="change-pwd-current" placeholder="Digite a senha atual">
+            <input type="password" id="change-pwd-current" placeholder="Digite a senha adrenaline">
             <button class="pwd-toggle" onclick="togglePwd('change-pwd-current',this)">👁</button>
           </div>
         </div>
@@ -514,7 +514,7 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
 <script>
 const APP = {
   name: 'PWARRUDA',
-  build: '038',
+  build: '039',
   get fullName(){ return `${this.name} Build ${this.build}` },
   encKey: null,
   db: null,
@@ -649,9 +649,13 @@ function newDB() {
 }
 
 const Store = {
-  async saveDB() {
+  async saveDB(isLogoutAction = false) {
     if (!APP.encKey) return;
-    APP.db.lastModified = Date.now();
+    
+    if (!isLogoutAction) {
+      APP.db.lastModified = Date.now();
+    }
+    
     const encrypted = await Crypto.encrypt(APP.db, APP.encKey);
     localStorage.setItem(DB_KEY, encrypted);
     updateSyncIndicator();
@@ -838,7 +842,7 @@ async function doLogout() {
   if (confirm("Deseja realmente sair e fechar a sessão do aplicativo?")) {
     if (APP.db) {
       APP.db.lastLogout = Date.now();
-      await Store.saveDB();
+      await Store.saveDB(true);
     }
     
     APP.encKey = null;
