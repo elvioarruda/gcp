@@ -440,7 +440,7 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
         <div class="form-group" style="margin-top:0.5rem">
           <label>Senha Atual</label>
           <div class="pwd-field">
-            <input type="password" id="change-pwd-current" placeholder="Digite a senha atual">
+            <input type="password" id="change-pwd-current" placeholder="Digite a senha adrenaline">
             <button class="pwd-toggle" onclick="togglePwd('change-pwd-current',this)">👁</button>
           </div>
         </div>
@@ -533,7 +533,7 @@ const ADMIN_PASS_HASH_KEY = 'pwarruda_admin_hash';
 const DB_KEY = 'pwarruda_db';
 const SETTINGS_KEY = 'pwarruda_settings';
 const SESSION_KEY = 'pwarruda_session';
-const LAST_ACCESS_TIMESTAMP_KEY = 'pwarruda_last_access';
+const LAST_LOGOUT_TIMESTAMP_KEY = 'pwarruda_last_logout';
 
 const DEFAULT_CATEGORIES = [
   { id: 'bank', label: 'Banco', icon: '🏦' },
@@ -800,9 +800,7 @@ async function doLogin() {
     await Store.loadDB();
   }
   
-  const currentAccessTime = Date.now();
   sessionStorage.setItem(SESSION_KEY, 'active');
-  sessionStorage.setItem(LAST_ACCESS_TIMESTAMP_KEY, currentAccessTime.toString());
   
   setTimeout(() => {
     document.getElementById('login-screen').classList.add('hidden');
@@ -836,12 +834,13 @@ function verificarSessaoExistente() {
 
 function doLogout() {
   if (confirm("Deseja realmente sair e fechar a sessão do aplicativo?")) {
+    localStorage.setItem(LAST_LOGOUT_TIMESTAMP_KEY, Date.now().toString());
+    
     APP.encKey = null;
     APP.db = null;
     APP.fileHandle = null;
     APP.fileName = null;
     sessionStorage.removeItem(SESSION_KEY);
-    sessionStorage.removeItem(LAST_ACCESS_TIMESTAMP_KEY);
     if (APP.lockTimer) clearTimeout(APP.lockTimer);
     document.getElementById('login-pass').value = '';
     document.getElementById('login-error').textContent = '';
@@ -940,8 +939,8 @@ function renderRecordsList() {
   }
 
   if (subtitleContainer) {
-    const sessionAccess = sessionStorage.getItem(LAST_ACCESS_TIMESTAMP_KEY);
-    const accessStr = sessionAccess ? formatarDateTime(parseInt(sessionAccess)) : "--/--/-- --:--:--";
+    const lastLogout = localStorage.getItem(LAST_LOGOUT_TIMESTAMP_KEY);
+    const accessStr = lastLogout ? formatarDateTime(parseInt(lastLogout)) : "--/--/-- --:--:--";
     const updateStr = maxTimestamp > 0 ? formatarDateTime(maxTimestamp) : "--/--/-- --:--:--";
     subtitleContainer.textContent = `Último acesso: ${accessStr} - Atualizado em: ${updateStr}`;
   }
