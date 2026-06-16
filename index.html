@@ -223,7 +223,7 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
 <div id="app">
 
   <div id="login-screen">
-    <form class="login-card" id="form-login-autofill" action="javascript:void(0);" onsubmit="handleLoginSubmit(event)">
+    <form class="login-card" id="form-login-autofill" action="#login" onsubmit="handleLoginSubmit(event)">
       <div class="logo-area">
         <div class="logo-icon">🔐</div>
         <div class="logo-title">PWARRUDA</div>
@@ -392,7 +392,7 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
           <label>Lista de Registros para Importação</label>
           <textarea id="batch-text-input" style="min-height: 150px;" placeholder="Exemplo:&#10;Servidor VPS;root;Senha@123;IP_Do_Servidor;Porta_SSH;Frase de recuperação do token&#10;E-mail Secundário;contato@dominio.com;Acesso#2026;;;Criado para testes internos"></textarea>
         </div>
-        <button class="btn btn-success btn-full" onclick="executarImportacaoEm Lote()">Processar e Importar Lista</button>
+        <button class="btn btn-success btn-full" onclick="executarImportacaoEmLote()">Processar e Importar Lista</button>
       </div>
       
       <div style="display:flex;gap:.75rem;margin-top:1.5rem">
@@ -512,7 +512,7 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
 <script>
 const APP = {
   name: 'PWARRUDA',
-  build: '032',
+  build: '034',
   get fullName(){ return `${this.name} Build ${this.build}` },
   encKey: null,
   db: null,
@@ -552,8 +552,16 @@ window.onload = function() {
 
 function handleLoginSubmit(event) {
   event.preventDefault();
+  const form = event.target;
+  
   if (typeof doLogin === "function") {
     doLogin();
+    
+    // Pequeno atraso para o motor do Chrome indexar o envio antes do reset
+    setTimeout(() => {
+      window.location.hash = "dashboard";
+      form.reset();
+    }, 150);
   }
 }
 
@@ -791,10 +799,15 @@ async function doLogin() {
   }
   
   sessionStorage.setItem(SESSION_KEY, 'active');
-  document.getElementById('login-screen').classList.add('hidden');
-  document.getElementById('topbar').classList.remove('hidden');
-  document.getElementById('main').classList.remove('hidden');
-  document.getElementById('bottom-nav').classList.remove('hidden');
+  
+  // Atraso intencional para permitir que o Chrome capture as credenciais antes da ocultação do DOM
+  setTimeout(() => {
+    document.getElementById('login-screen').classList.add('hidden');
+    document.getElementById('topbar').classList.remove('hidden');
+    document.getElementById('main').classList.remove('hidden');
+    document.getElementById('bottom-nav').classList.remove('hidden');
+    showPage('sync');
+  }, 250);
   
   const savedFileName = localStorage.getItem('pwarruda_file_name');
   if (savedFileName) {
@@ -803,7 +816,6 @@ async function doLogin() {
   }
   
   dinamizarElementosUI();
-  showPage('sync');
   setupAutoLock();
   showToast('Autenticação realizada.', 'success');
 }
@@ -833,6 +845,7 @@ function doLogout() {
     document.getElementById('main').classList.add('hidden');
     document.getElementById('bottom-nav').classList.add('hidden');
     document.getElementById('login-screen').classList.remove('hidden');
+    window.location.hash = "login";
   }
 }
 
