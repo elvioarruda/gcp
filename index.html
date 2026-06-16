@@ -223,7 +223,7 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
 <div id="app">
 
   <div id="login-screen">
-    <div class="login-card">
+    <form class="login-card" id="form-login-autofill" action="javascript:void(0);" onsubmit="handleLoginSubmit(event)">
       <div class="logo-area">
         <div class="logo-icon">🔐</div>
         <div class="logo-title">PWARRUDA</div>
@@ -231,17 +231,17 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
         <div class="logo-sub" style="font-size: 0.65rem; color: var(--text3); margin-bottom: 1.5rem;"> .: Richard Bach :. </div>
       </div>
       <div class="form-group">
-        <input type="text" id="login-user" autocomplete="username" placeholder="Usuário">
+        <input type="text" id="login-user" name="username" autocomplete="username" placeholder="Usuário" required>
       </div>
       <div class="form-group">
         <div class="pwd-field">
-          <input type="password" id="login-pass" autocomplete="current-password" placeholder="Senha de acesso">
-          <button class="pwd-toggle" onclick="togglePwd('login-pass',this)">👁</button>
+          <input type="password" id="login-pass" name="password" autocomplete="current-password" placeholder="Senha de acesso" required>
+          <button type="button" class="pwd-toggle" onclick="togglePwd('login-pass',this)">👁</button>
         </div>
       </div>
       <div id="login-error" class="error-msg" style="margin-bottom:.75rem"></div>
-      <button class="btn btn-primary btn-full" onclick="doLogin()">Entrar</button>
-    </div>
+      <button type="submit" class="btn btn-primary btn-full">Entrar</button>
+    </form>
     <div class="version-badge" id="login-version"></div>
   </div>
 
@@ -392,7 +392,7 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
           <label>Lista de Registros para Importação</label>
           <textarea id="batch-text-input" style="min-height: 150px;" placeholder="Exemplo:&#10;Servidor VPS;root;Senha@123;IP_Do_Servidor;Porta_SSH;Frase de recuperação do token&#10;E-mail Secundário;contato@dominio.com;Acesso#2026;;;Criado para testes internos"></textarea>
         </div>
-        <button class="btn btn-success btn-full" onclick="executarImportacaoEmLote()">Processar e Importar Lista</button>
+        <button class="btn btn-success btn-full" onclick="executarImportacaoEm Lote()">Processar e Importar Lista</button>
       </div>
       
       <div style="display:flex;gap:.75rem;margin-top:1.5rem">
@@ -549,6 +549,13 @@ document.addEventListener("DOMContentLoaded", function() {
 window.onload = function() {
   updateVersionDisplay();
 };
+
+function handleLoginSubmit(event) {
+  event.preventDefault();
+  if (typeof doLogin === "function") {
+    doLogin();
+  }
+}
 
 function updateVersionDisplay() {
   const v = `${APP.name} Build ${APP.build}`;
@@ -1124,7 +1131,7 @@ async function salvarFormulario() {
   showToast('Registro salvo com sucesso.', 'success');
 }
 
-async function ejecutarImportacaoEmLote() {
+async function executarImportacaoEmLote() {
   const txt = document.getElementById('batch-text-input').value;
   const type = document.getElementById('form-type').value;
   if (!txt.trim()) { showToast('Insira dados válidos para processar.', 'error'); return; }
