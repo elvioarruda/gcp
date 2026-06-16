@@ -115,7 +115,7 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
-  margin-bottom: 1.25rem;
+  margin-bottom: 0.75rem;
 }
 
 .filter-chip {
@@ -137,6 +137,14 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
   color: #fff;
   border-color: var(--primary);
   box-shadow: var(--glow);
+}
+
+.sort-container-dual {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 1.25rem;
 }
 
 /* ─── SETTINGS ─── */
@@ -262,20 +270,26 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
     <div class="page active" id="page-records">
       <div class="section-hdr">
         <span class="section-title" id="page-records-title">Total de Registros: 0</span>
-        <div style="display:flex; flex-direction:column; align-items:flex-end; gap:.5rem">
-          <button class="btn btn-primary btn-sm" onclick="abrirFormularioNovo()" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" title="Adicionar Novo Registro">
-            <span class="material-symbols-outlined" style="font-size:16px; margin-right:2px">add</span> Novo
-          </button>
-          <button class="btn btn-icon btn-secondary btn-sm" onclick="toggleSort()" title="Alternar classificação alfabética">
-            <span class="material-symbols-outlined" id="sort-icon">sort_by_alpha</span>
-          </button>
-        </div>
+        <button class="btn btn-primary btn-sm" onclick="abrirFormularioNovo()" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" title="Adicionar Novo Registro">
+          <span class="material-symbols-outlined" style="font-size:16px; margin-right:2px">add</span> Novo
+        </button>
       </div>
       <div class="section-subtitle" id="page-records-subtitle">
         <div id="info-last-access">Último acesso: --/--/-- --:--:--</div>
         <div id="info-last-update">Atualizado em: --/--/-- --:--:--</div>
       </div>
+      
       <div class="filter-row" id="filter-row"></div>
+      
+      <div class="sort-container-dual">
+        <button class="btn btn-icon btn-secondary btn-sm" onclick="toggleSort()" title="Alternar classificação alfabética (Esquerda)">
+          <span class="material-symbols-outlined" id="sort-icon-left">sort_by_alpha</span>
+        </button>
+        <button class="btn btn-icon btn-secondary btn-sm" onclick="toggleSort()" title="Alternar classificação alfabética (Direita)">
+          <span class="material-symbols-outlined" id="sort-icon-right">sort_by_alpha</span>
+        </button>
+      </div>
+
       <div id="records-list"></div>
     </div>
 
@@ -1083,8 +1097,14 @@ function doSearch(val) {
 
 function toggleSort() {
   APP.sortOrder = APP.sortOrder === 'asc' ? 'desc' : 'asc';
-  const icon = document.getElementById('sort-icon');
-  if (icon) icon.textContent = APP.sortOrder === 'asc' ? 'sort_by_alpha' : 'text_rotation_down';
+  
+  const iconLeft = document.getElementById('sort-icon-left');
+  const iconRight = document.getElementById('sort-icon-right');
+  const txt = APP.sortOrder === 'asc' ? 'sort_by_alpha' : 'text_rotation_down';
+  
+  if (iconLeft) iconLeft.textContent = txt;
+  if (iconRight) iconRight.textContent = txt;
+  
   renderRecordsList();
 }
 
