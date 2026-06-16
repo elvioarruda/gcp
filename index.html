@@ -142,9 +142,19 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
 .sort-container-dual {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-end; /* Garante o alinhamento pela parte inferior dos elementos */
   width: 100%;
   margin-bottom: 1.25rem;
+}
+
+.sort-middle-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+  flex: 1;
+  text-align: center;
+  line-height: 1; /* Alinha o texto na mesma linha de base do botão */
+  margin-bottom: 4px; /* Pequeno ajuste de respiro em relação à borda do botão */
 }
 
 /* ─── SETTINGS ─── */
@@ -269,7 +279,7 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
 
     <div class="page active" id="page-records">
       <div class="section-hdr">
-        <span class="section-title" id="page-records-title">Total de Registros: 0</span>
+        <span class="section-title">Registros</span>
         <button class="btn btn-primary btn-sm" onclick="abrirFormularioNovo()" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" title="Adicionar Novo Registro">
           <span class="material-symbols-outlined" style="font-size:16px; margin-right:2px">add</span> Novo
         </button>
@@ -285,6 +295,9 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
         <button class="btn btn-icon btn-secondary btn-sm" onclick="toggleSort()" title="Alternar classificação alfabética (Esquerda)">
           <span class="material-symbols-outlined" id="sort-icon-left">sort_by_alpha</span>
         </button>
+        
+        <div class="sort-middle-title" id="page-records-title">Total de Registros: 0</div>
+        
         <button class="btn btn-icon btn-secondary btn-sm" onclick="toggleSort()" title="Alternar classificação alfabética (Direita)">
           <span class="material-symbols-outlined" id="sort-icon-right">sort_by_alpha</span>
         </button>
@@ -348,7 +361,7 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
         </div>
       </div>
 
-      <div class="section-hdr"><span class="section-title" id="page-records-title">Total de Registros: 0</span></div>
+      <div class="section-hdr"><span class="section-title">Categorias Disponíveis</span></div>
       <div id="categories-manager-list"></div>
     </div>
 
@@ -531,7 +544,7 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
 <script>
 const APP = {
   name: 'PWARRUDA',
-  build: '039',
+  build: '041',
   get fullName(){ return `${this.name} Build ${this.build}` },
   encKey: null,
   db: null,
@@ -1292,7 +1305,7 @@ async function processarFormularioCategoria() {
   if (id) {
     const cat = APP.db.categories.find(c => c.id === id);
     if (cat) { cat.label = name; cat.icon = icon; }
-    showToast('Categoria atualizada.', 'success');
+    showToast('Categoria updated.', 'success');
   } else {
     const newId = name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, '-');
     if (APP.db.categories.some(c => c.id === newId)) { showToast('Identificador de categoria já existente.', 'warn'); return; }
