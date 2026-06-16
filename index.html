@@ -331,7 +331,7 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
         </div>
       </div>
 
-      <div class="section-hdr"><span class="section-title" style="font-size:0.9rem; color:var(--text2)">Categorias Cadastradas</span></div>
+      <div class="section-hdr"><span class="section-title" id="page-records-title">Total de Registros: 0</span></div>
       <div id="categories-manager-list"></div>
     </div>
 
@@ -440,7 +440,7 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
         <div class="form-group" style="margin-top:0.5rem">
           <label>Senha Atual</label>
           <div class="pwd-field">
-            <input type="password" id="change-pwd-current" placeholder="Digite a senha adrenaline">
+            <input type="password" id="change-pwd-current" placeholder="Digite a senha atual">
             <button class="pwd-toggle" onclick="togglePwd('change-pwd-current',this)">👁</button>
           </div>
         </div>
@@ -514,7 +514,7 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
 <script>
 const APP = {
   name: 'PWARRUDA',
-  build: '037',
+  build: '038',
   get fullName(){ return `${this.name} Build ${this.build}` },
   encKey: null,
   db: null,
@@ -533,7 +533,6 @@ const ADMIN_PASS_HASH_KEY = 'pwarruda_admin_hash';
 const DB_KEY = 'pwarruda_db';
 const SETTINGS_KEY = 'pwarruda_settings';
 const SESSION_KEY = 'pwarruda_session';
-const LAST_LOGOUT_TIMESTAMP_KEY = 'pwarruda_last_logout';
 
 const DEFAULT_CATEGORIES = [
   { id: 'bank', label: 'Banco', icon: '🏦' },
@@ -644,6 +643,7 @@ function newDB() {
     categories: [...DEFAULT_CATEGORIES],
     backups: [],
     lastSync: null,
+    lastLogout: null,
     lastModified: Date.now()
   };
 }
@@ -671,6 +671,7 @@ const Store = {
       if (!APP.db.categories || APP.db.categories.length === 0) {
         APP.db.categories = [...DEFAULT_CATEGORIES];
       }
+      if (APP.db.lastLogout === undefined) APP.db.lastLogout = null;
       APP.db.categories.forEach(c => { if (!c.icon) c.icon = '📁'; });
     } catch(e) {
       APP.db = newDB();
@@ -732,6 +733,7 @@ async function carregarArquivoExistente() {
           if (!APP.db.categories || APP.db.categories.length === 0) {
             APP.db.categories = [...DEFAULT_CATEGORIES];
           }
+          if (APP.db.lastLogout === undefined) APP.db.lastLogout = null;
           APP.db.categories.forEach(c => { if (!c.icon) c.icon = '📁'; });
           const encryptedLocal = await Crypto.encrypt(APP.db, APP.encKey);
           localStorage.setItem(DB_KEY, encryptedLocal);
@@ -744,7 +746,7 @@ async function carregarArquivoExistente() {
         showToast('Arquivo em branco. Base local enviada.', 'info');
       }
       document.getElementById('local-file-status').textContent = APP.fileName;
-      document.getElementById('local-file-path').textContent = "Arquivo carregado e monitored via API nativa.";
+      document.getElementById('local-file-path').textContent = "Arquivo carregado e monitorado via API nativa.";
       updateSyncIndicator();
     }
   } catch(err) { showToast('Falha ao ler arquivo selecionado.', 'error'); }
@@ -832,9 +834,12 @@ function verificarSessaoExistente() {
   }
 }
 
-function doLogout() {
+async function doLogout() {
   if (confirm("Deseja realmente sair e fechar a sessão do aplicativo?")) {
-    localStorage.setItem(LAST_LOGOUT_TIMESTAMP_KEY, Date.now().toString());
+    if (APP.db) {
+      APP.db.lastLogout = Date.now();
+      await Store.saveDB();
+    }
     
     APP.encKey = null;
     APP.db = null;
@@ -939,8 +944,7 @@ function renderRecordsList() {
   }
 
   if (subtitleContainer) {
-    const lastLogout = localStorage.getItem(LAST_LOGOUT_TIMESTAMP_KEY);
-    const accessStr = lastLogout ? formatarDateTime(parseInt(lastLogout)) : "--/--/-- --:--:--";
+    const accessStr = APP.db.lastLogout ? formatarDateTime(APP.db.lastLogout) : "--/--/-- --:--:--";
     const updateStr = maxTimestamp > 0 ? formatarDateTime(maxTimestamp) : "--/--/-- --:--:--";
     subtitleContainer.textContent = `Último acesso: ${accessStr} - Atualizado em: ${updateStr}`;
   }
@@ -1180,7 +1184,7 @@ async function salvarFormulario() {
   showToast('Registro salvo com sucesso.', 'success');
 }
 
-async function ejecutarImportacaoEmLote() {
+async function executarImportacaoEmLote() {
   const txt = document.getElementById('batch-text-input').value;
   const type = document.getElementById('form-type').value;
   if (!txt.trim()) { showToast('Insira dados válidos para processar.', 'error'); return; }
@@ -1256,9 +1260,9 @@ async function processarFormularioCategoria() {
   if (id) {
     const cat = APP.db.categories.find(c => c.id === id);
     if (cat) { cat.label = name; cat.icon = icon; }
-    showToast('Categoria updated.', 'success');
+    showToast('Categoria atualizada.', 'success');
   } else {
-    const newId = name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-String]/g, '-');
+    const newId = name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, '-');
     if (APP.db.categories.some(c => c.id === newId)) { showToast('Identificador de categoria já existente.', 'warn'); return; }
     APP.db.categories.push({ id: newId, label: name, icon: icon });
     showToast('Categoria criada.', 'success');
@@ -1292,7 +1296,7 @@ function cancelarEdicaoCategoria() {
 async function excluirCategoria(id) {
   if (DEFAULT_CATEGORIES.some(dc => dc.id === id)) return;
   if (APP.db.records.some(r => r.type === id)) {
-    showToast('Não é permitido remover categorias vinculadas a registros activos.', 'warn');
+    showToast('Não é permitido remover categorias vinculadas a registros ativos.', 'warn');
     return;
   }
   if (confirm("Confirma a remoção definitiva desta categoria?")) {
@@ -1354,6 +1358,7 @@ async function importData(evt) {
         if (!APP.db.categories || APP.db.categories.length === 0) {
           APP.db.categories = [...DEFAULT_CATEGORIES];
         }
+        if (APP.db.lastLogout === undefined) APP.db.lastLogout = null;
         APP.db.categories.forEach(c => { if (!c.icon) c.icon = '📁'; });
         await Store.saveDB();
         dinamizarElementosUI();
