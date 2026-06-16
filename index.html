@@ -109,7 +109,7 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
 /* ─── SECTION HEADER & CHIPS ─── */
 .section-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:0.25rem;margin-top:.5rem}
 .section-title{font-size:1rem;font-weight:700;color:var(--text)}
-.section-subtitle{font-size:0.75rem;color:var(--text2);margin-bottom:1rem;font-weight:500}
+.section-subtitle{font-size:0.75rem;color:var(--text2);margin-bottom:1rem;font-weight:500;line-height:1.4}
 
 .filter-row {
   display: flex;
@@ -271,7 +271,10 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
           </button>
         </div>
       </div>
-      <div class="section-subtitle" id="page-records-subtitle">Último acesso: --/--/-- --:--:-- - Atualizado em: --/--/-- --:--:--</div>
+      <div class="section-subtitle" id="page-records-subtitle">
+        <div id="info-last-access">Último acesso: --/--/-- --:--:--</div>
+        <div id="info-last-update">Atualizado em: --/--/-- --:--:--</div>
+      </div>
       <div class="filter-row" id="filter-row"></div>
       <div id="records-list"></div>
     </div>
@@ -930,7 +933,8 @@ function formatarDateTime(timestamp) {
 function renderRecordsList() {
   const container = document.getElementById('records-list');
   const titleContainer = document.getElementById('page-records-title');
-  const subtitleContainer = document.getElementById('page-records-subtitle');
+  const lastAccessContainer = document.getElementById('info-last-access');
+  const lastUpdateContainer = document.getElementById('info-last-update');
   if (!container) return;
   container.innerHTML = '';
   if (!APP.db) return;
@@ -947,10 +951,14 @@ function renderRecordsList() {
     titleContainer.textContent = `Total de Registros: ${totalRecordsCount}`;
   }
 
-  if (subtitleContainer) {
+  if (lastAccessContainer) {
     const accessStr = APP.db.lastLogout ? formatarDateTime(APP.db.lastLogout) : "--/--/-- --:--:--";
+    lastAccessContainer.textContent = `Último acesso: ${accessStr}`;
+  }
+  
+  if (lastUpdateContainer) {
     const updateStr = maxTimestamp > 0 ? formatarDateTime(maxTimestamp) : "--/--/-- --:--:--";
-    subtitleContainer.textContent = `Último acesso: ${accessStr} - Atualizado em: ${updateStr}`;
+    lastUpdateContainer.textContent = `Atualizado em: ${updateStr}`;
   }
   
   let filtered = APP.db.records.filter(r => {
