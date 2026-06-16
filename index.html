@@ -260,7 +260,7 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
 
     <div class="page active" id="page-records">
       <div class="section-hdr">
-        <span class="section-title">Meus Registros</span>
+        <span class="section-title" id="page-records-title">Total de Registros: 0</span>
         <div style="display:flex; gap:.5rem">
           <button class="btn btn-primary btn-sm" onclick="abrirFormularioNovo()" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" title="Adicionar Novo Registro">
             <span class="material-symbols-outlined" style="font-size:16px; margin-right:2px">add</span> Novo
@@ -512,7 +512,7 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
 <script>
 const APP = {
   name: 'PWARRUDA',
-  build: '034',
+  build: '035',
   get fullName(){ return `${this.name} Build ${this.build}` },
   encKey: null,
   db: null,
@@ -742,7 +742,7 @@ async function carregarArquivoExistente() {
         showToast('Arquivo em branco. Base local enviada.', 'info');
       }
       document.getElementById('local-file-status').textContent = APP.fileName;
-      document.getElementById('local-file-path').textContent = "Arquivo carregado e monitorado via API nativa.";
+      document.getElementById('local-file-path').textContent = "Arquivo carregado e monitored via API nativa.";
       updateSyncIndicator();
     }
   } catch(err) { showToast('Falha ao ler arquivo selecionado.', 'error'); }
@@ -905,9 +905,25 @@ function dinamizarElementosUI() {
 
 function renderRecordsList() {
   const container = document.getElementById('records-list');
+  const titleContainer = document.getElementById('page-records-title');
   if (!container) return;
   container.innerHTML = '';
   if (!APP.db) return;
+
+  const totalRecordsCount = APP.db.records.length;
+  let maxTimestamp = 0;
+  APP.db.records.forEach(r => {
+    const t = r.updatedAt || r.createdAt || 0;
+    if (t > maxTimestamp) maxTimestamp = t;
+  });
+
+  if (titleContainer) {
+    let dateStr = "Nenhuma";
+    if (maxTimestamp > 0) {
+      dateStr = new Date(maxTimestamp).toLocaleDateString('pt-BR');
+    }
+    titleContainer.textContent = `Total de Registros: ${totalRecordsCount} - Última Atualização em: ${dateStr}`;
+  }
   
   let filtered = APP.db.records.filter(r => {
     if (APP.currentFilter !== 'all' && r.type !== APP.currentFilter) return false;
