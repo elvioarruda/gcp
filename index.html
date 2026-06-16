@@ -111,6 +111,20 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
 .section-title{font-size:1rem;font-weight:700;color:var(--text)}
 .section-subtitle{font-size:0.75rem;color:var(--text2);margin-bottom:1rem;font-weight:500;line-height:1.4}
 
+.records-meta-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-top: 0.5rem;
+  margin-bottom: 1rem;
+}
+.records-meta-info {
+  font-size: 0.75rem;
+  color: var(--text2);
+  font-weight: 500;
+  line-height: 1.4;
+}
+
 .filter-row {
   display: flex;
   flex-wrap: wrap;
@@ -142,7 +156,7 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
 .sort-container-dual {
   display: flex;
   justify-content: space-between;
-  align-items: flex-end; /* Garante o alinhamento pela parte inferior dos elementos */
+  align-items: flex-end;
   width: 100%;
   margin-bottom: 1.25rem;
 }
@@ -153,8 +167,8 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
   color: var(--text);
   flex: 1;
   text-align: center;
-  line-height: 1; /* Alinha o texto na mesma linha de base do botão */
-  margin-bottom: 4px; /* Pequeno ajuste de respiro em relação à borda do botão */
+  line-height: 1;
+  margin-bottom: 4px;
 }
 
 /* ─── SETTINGS ─── */
@@ -278,15 +292,14 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
   <div id="main" class="hidden">
 
     <div class="page active" id="page-records">
-      <div class="section-hdr">
-        <span class="section-title">Registros</span>
+      <div class="records-meta-container">
+        <div class="records-meta-info">
+          <div id="info-last-access">Último acesso: --/--/-- --:--:--</div>
+          <div id="info-last-update">Atualizado em: --/--/-- --:--:--</div>
+        </div>
         <button class="btn btn-primary btn-sm" onclick="abrirFormularioNovo()" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" title="Adicionar Novo Registro">
           <span class="material-symbols-outlined" style="font-size:16px; margin-right:2px">add</span> Novo
         </button>
-      </div>
-      <div class="section-subtitle" id="page-records-subtitle">
-        <div id="info-last-access">Último acesso: --/--/-- --:--:--</div>
-        <div id="info-last-update">Atualizado em: --/--/-- --:--:--</div>
       </div>
       
       <div class="filter-row" id="filter-row"></div>
